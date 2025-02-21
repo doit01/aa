@@ -1,3 +1,27 @@
+
+
+在Linux系统下，我关注过以下内核参数：
+‌核心参数包括但不限于‌：
+    ‌vm.swappiness‌：设置虚拟内存(swap)使用率，用于控制系统在内存不足时，将页面交换到磁盘的程度‌12。
+    ‌net.core.wmem_default, net.core.wmem_max, net.core.rmem_default, net.core.rmem_max‌：这些流控参数用于控制网络连接中的数据传输的缓冲区大小‌1。
+    ‌kernel.pid_max‌：设置系统中进程PID的最大值‌1。
+    ‌net.ipv4.tcp_syncookies‌：启用或禁用TCP SYN Cookies，可防止SYN flood攻击‌13。
+    ‌fs.file-max‌：设置系统中打开文件的最大数量‌14。
+    ‌vm.overcommit_memory‌：设置虚拟内存overcommit模式，控制系统是否允许超额分配内存‌12。
+
+此外，还有一些与网络性能相关的关键参数，如：
+    ‌net.ipv4.tcp_max_syn_backlog‌：SYN队列长度，用于控制TCP连接请求的最大排队数量‌3。
+    ‌net.ipv4.tcp_fin_timeout‌：TCP连接关闭的超时时间，控制主动关闭方FIN-WAIT-2状态的超时时长‌23。
+    ‌net.ipv4.tcp_tw_reuse‌ 和 ‌net.ipv4.tcp_tw_recycle‌：这两个参数分别用于开启TIME-WAIT重用和TIME-WAIT快速回收功能，有助于优化网络性能‌23。
+
+以及内存管理方面的参数，例如：
+
+    ‌vm.dirty_ratio‌ 和 ‌vm.dirty_background_ratio‌：这两个参数分别控制系统脏页占内存的比例和后台写入脏页的比例，有助于平衡内存使用和磁盘I/O性能‌2。
+
+这些内核参数对于优化Linux系统的性能、安全性和稳定性至关重要。通过合理调整这些参数，可以显著提升系统的整体表现。需要注意的是，调整内核参数需要谨慎进行，以避免对系统造成不良影响‌24。
+
+
+
 TCP是基于字节流的协议‌：TCP不维护消息边界，只保证数据的有序性和可靠性。发送方发送的多个数据包可能会被TCP协议组合成一个大的数据块发送，或者拆分成多个小块发送‌2。
 
 需要根据实际需求来决定。如果需要直观地查看和理解IP地址，那么使用VARCHAR类型字段存储IP地址的方式比较好。如果需要在数据库中存储大量的IP地址，并且需要进行高效的查询，那么使用INT类型字段存储IP地址的方式更为合适。
