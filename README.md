@@ -1,3 +1,5 @@
+异步http client
+okhttp ，apache httpclient 背后是线程池，而非真异步。  真异步要用jdk的 httpclient，webclient，适用于高并发，节省线程。
 JVM中的直接内存（Direct Memory）是什么？
 
 直接内存（Direct Memory）不是JVM堆内存的一部分，它是通过在Java代码中使用NIO库分配的内存，直接在操作系统的物理内存中分配。主要特点和用途：
