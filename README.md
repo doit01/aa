@@ -1,3 +1,24 @@
+not in 是不能命中索引的
+用 EXISTS 或 NOT EXISTS 代替
+
+    select * from test1
+       where EXISTS (select * from test2 where id2 = id1 )
+     
+     
+    select * FROM test1
+     where NOT EXISTS (select * from test2 where id2 = id1 )
+
+2、用JOIN 代替
+
+    select id1 from test1
+       INNER JOIN test2 ON id2 = id1
+     
+     
+    select id1 from test1
+       LEFT JOIN test2 ON id2 = id1
+       where id2 IS NULL
+
+       
 因为HTTP/2底层是采用TCP协议实现的，虽然解决了HTTP队头阻塞的问题，但是对于TCP队头阻塞的问题却无能为力。
 
 TCP传输过程中会把数据拆分为一个个按照顺序排列的数据包，这些数据包通过网络传输到了接收端，接收端再按照顺序将这些数据包组合成原始数据，这样就完成了数据传输。
