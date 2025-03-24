@@ -1,3 +1,6 @@
+Spring 事务传播机制中 REQUIRES_NEW 的实现原理‌
+    创建新事务时，暂停当前事务（通过 TransactionSynchronizationManager 解绑资源），新事务提交后恢复原事务‌
+    
 Metaspace 内存泄漏的常见原因及排查方法‌
     ‌原因‌：动态生成类未卸载（如大量使用反射或 CGLIB 代理）‌35。
     ‌排查‌：使用 jcmd <pid> GC.class_stats 统计类加载信息，或通过 MAT 分析堆转储‌58
