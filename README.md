@@ -1,3 +1,13 @@
+Metaspace 内存泄漏的常见原因及排查方法‌
+    ‌原因‌：动态生成类未卸载（如大量使用反射或 CGLIB 代理）‌35。
+    ‌排查‌：使用 jcmd <pid> GC.class_stats 统计类加载信息，或通过 MAT 分析堆转储‌58
+
+CAP 理论中 BASE 理论的应用场景‌
+    ‌核心‌：基本可用（Basically Available）、软状态（Soft State）、最终一致性（Eventual Consistency）。
+    ‌场景‌：电商库存允许超卖后补偿，优先保证系统可用性‌78。
+
+
+    
 not in 是不能命中索引的
 用 EXISTS 或 NOT EXISTS 代替
 
