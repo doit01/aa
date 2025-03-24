@@ -1,3 +1,255 @@
+jdk17 default gc is G1 
+java -XX:+PrintCommandLineFlags -version
+-XX:InitialHeapSize=16777216 -XX:MaxHeapSize=268435456 -XX:MinHeapSize=6815736 -XX:+PrintCommandLineFlags -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC 
+分区回收‌：G1将堆内存划分为多个Region，根据优先级进行回收，减少全局停顿时间。
+‌并发和并行处理‌：G1支持并发标记和并发预处理，减少垃圾回收对应用的影响。
+
+G1 的基本原理与核心设计‌
+
+    ‌Region 分区机制‌
+    G1 将堆划分为多个大小相等的 Region（默认 2048 个），逻辑上分为 Eden、Survivor、Old 和 Humongous（大对象区）。通过动态调整回收优先级（标记垃圾最多的 Region 优先回收），实现低停顿目标‌38。
+    ‌并发标记与混合回收‌
+        ‌并发标记阶段‌：与应用程序并行执行，标记存活对象，避免全堆停顿‌48。
+        ‌混合回收（Mixed GC）‌：回收年轻代 Region 和部分老年代 Region，避免老年代完全回收（非 Full GC）‌38。
+
+‌2. 如何实现可预测的停顿时间？‌
+
+    ‌停顿时间模型‌：通过 -XX:MaxGCPauseMillis 设定目标停顿时间（默认 200ms），G1 根据历史回收数据动态调整 Region 回收数量和顺序，优先处理垃圾比例高的 Region‌38。
+    ‌增量回收‌：将回收任务拆分为多个小阶段（如初始标记、并发标记、重新标记、清理），分批次完成，避免单次长时间停顿‌48。
+
+‌3. Region 设计的优势‌
+
+    ‌内存利用率高‌：支持动态分配 Region 类型（如 Eden→Survivor→Old），避免传统分代模型的内存浪费‌38。
+    ‌并行与并发优化‌：多个回收线程可同时处理不同 Region，降低线程竞争，提升吞吐量‌38。
+
+‌4. Mixed GC 的触发条件与流程‌
+
+    ‌触发阈值‌：当老年代占用堆比例达到 -XX:InitiatingHeapOccupancyPercent（默认 45%）时触发‌48。
+    ‌执行流程‌：
+        ‌初始标记（STW）‌：标记根对象，伴随一次年轻代 GC‌8。
+        ‌并发标记‌：并行标记存活对象‌8。
+        ‌最终标记（STW）‌：修正并发标记期间变动的对象引用‌8。
+        ‌筛选回收（Evacuation）‌：复制存活对象到空闲 Region，清理垃圾 Region‌48。
+
+‌5. G1 与 CMS 的核心区别‌
+‌特性‌ 	‌G1‌ 	‌CMS‌
+‌算法‌ 	标记-整理（整体） + 复制（局部） 	标记-清除
+‌内存模型‌ 	Region 逻辑分区 	物理分代（年轻代 + 老年代）
+‌停顿时间‌ 	可控（可预测模型） 	不可控（依赖堆碎片情况）
+‌适用场景‌ 	大堆、低延迟需求 	中小堆、高吞吐需求
+‌内存碎片处理‌ 	通过 Region 复制整理减少碎片 	需 Full GC 整理碎片
+‌引用‌ 	‌34 	‌34
+‌6. 大对象（Humongous）处理机制‌
+
+    ‌定义‌：对象大小超过 Region 50% 则判定为大对象，分配在连续的 Humongous Region‌38。
+    ‌回收策略‌：在年轻代 GC 或 Mixed GC 中回收无引用的大对象，避免占用过多连续空间‌38。
+
+‌7. 调优关键参数‌
+
+    ‌目标停顿时间‌：-XX:MaxGCPauseMillis=200（单位：ms）‌38。
+    ‌混合回收阈值‌：-XX:InitiatingHeapOccupancyPercent=45（老年代占用堆比例）‌48。
+    ‌Region 大小‌：-XX:G1HeapRegionSize=2M（建议为 1MB~32MB，需为 2 的幂）‌48。
+
+‌8. Full GC 触发条件及应对‌
+
+    ‌触发场景‌：
+        Mixed GC 回收速度跟不上对象分配速度，导致老年代占满‌8。
+        并发标记失败（如堆内存不足）‌8。
+    ‌优化方案‌：
+        增大堆内存或降低 -XX:InitiatingHeapOccupancyPercent‌8。
+        避免频繁大对象分配，减少 Humongous Region 碎片‌38。
+
+‌9. 适用场景与局限性‌
+
+    ‌适用场景‌：
+        堆内存 ≥ 6GB，需低延迟（如实时交易系统）‌38。
+        对停顿时间敏感的应用（如金融、游戏服务）‌48。
+    ‌局限性‌：
+        小堆场景性能可能不如 CMS/Parallel GC‌34。
+        内存占用较高（需维护 Region 元数据）‌
+
+String.intern() 方法的作用‌
+将字符串对象添加到常量池‌：
+调用 intern() 方法时，若字符串常量池中已存在内容相同的字符串，则直接返回池中的引用；若不存在，则将该字符串对象添加到池中，并返回池中的引用。 
+
+String s1 = new String("abc");  // 堆中创建新对象
+String s2 = s1.intern();        // 返回常量池中的 "abc" 引用
+System.out.println(s1 == s2);   // false（s1在堆，s2在池）
+
+String s3 = "abc";              // 直接使用常量池
+System.out.println(s2 == s3);   // true（两者均指向池中同一对象）
+ 内存优化原理‌
+    ‌减少重复字符串的内存占用‌：
+通过 intern() 可强制将字符串放入常量池，避免重复字符串在堆中创建多个对象
+/ 未使用 intern()
+String a = new String("hello");  // 堆中对象
+String b = new String("hello");  // 堆中另一个对象
+System.out.println(a == b);      // false
+
+// 使用 intern()
+String c = new String("world").intern();  // 池中对象
+String d = "world";                       // 池中同一对象
+System.out.println(c == d);               // true
+字符串常量池移至 ‌堆内存‌，允许通过垃圾回收管理未引用的常量字符串，减少内存泄漏风险。
+适用场景‌
+
+    ‌大量重复字符串处理‌：如解析 CSV/JSON 数据时，对重复字段值调用 intern() 可显著减少内存占用。
+    ‌高频字符串比较‌：若需频繁使用 equals() 比较字符串内容，可先调用 intern() 后用 == 比较引用，提升性能（需权衡池化开销）。
+
+注意事项‌
+
+    ‌性能开销‌：intern() 的底层实现依赖哈希表（Java 7+ 使用 ConcurrentHashMap），高并发场景下可能成为瓶颈。
+    ‌内存风险‌：过度池化唯一字符串（如 UUID）会导致常量池膨胀，反而增加内存压力。
+    ‌版本差异‌：Java 6 的常量池容量固定（默认 1009），易触发 OutOfMemoryError；Java 7+ 支持动态扩展。
+核心目的‌：通过字符串常量池复用相同内容的字符串，节省内存。
+‌适用场景‌：处理大量重复字符串时（如日志分析、数据解析）。
+‌避坑指南‌：避免池化唯一或动态生成的字符串，优先在 Java 7+ 中使用。
+‌性能权衡‌：在内存节省与池化开销之间找到平衡点。
+
+
+类加载的三个阶段‌
+
+    ‌加载‌：通过全限定名获取二进制字节流（Class 文件），将静态结构转换为方法区的运行时数据结构，并在堆中生成 java.lang.Class 对象作为访问入口‌36。
+    ‌验证‌：检查字节码是否符合 JVM 规范（如魔数、版本号、常量池合法性），确保无安全漏洞‌36。
+    ‌准备‌：为类变量（static 变量）分配内存并设置初始值（如 int 初始化为 0，final 直接赋常量池值）‌35。
+
+‌连接与初始化‌
+
+    ‌解析‌：将符号引用（如类名、方法名）转换为直接引用（内存地址）‌78。
+    ‌初始化‌：执行 <clinit> 方法（静态变量赋值、静态代码块），是类加载的最后一步‌
+
+类加载器与双亲委派模型‌
+
+    ‌类加载器分类‌
+        ‌启动类加载器（Bootstrap ClassLoader）‌：加载 JRE/lib 下的核心类库（如 rt.jar）‌27。
+        ‌扩展类加载器（Extension ClassLoader）‌：加载 JRE/lib/ext 目录的扩展类‌26。
+        ‌应用类加载器（Application ClassLoader）‌：加载用户类路径（ClassPath）的类‌26。
+        ‌自定义类加载器‌：继承 ClassLoader，重写 findClass() 实现动态加载（如热部署、加密解密）‌27。
+
+    ‌双亲委派机制‌
+        ‌流程‌：子类加载器收到请求后，优先委派父类加载器处理，父类无法完成时才由子类加载‌26。
+        ‌优点‌：避免类重复加载，保护核心类库安全（如防止自定义 java.lang.String 覆盖 JVM 实现
+必须立即初始化的 5 种情况‌
+
+    使用 new 实例化对象、读取/设置类的静态字段、调用类的静态方法‌67。
+    反射调用类（如 Class.forName()）且类未初始化‌67。
+    初始化子类时发现父类未初始化（先触发父类初始化）‌67。
+    JVM 启动时指定的主类（包含 main() 方法的类）‌78。
+    JDK 动态语言支持（如 Lambda 表达式涉及的类）‌
+
+如何打破双亲委派模型？‌
+    ‌场景‌：Tomcat 为隔离不同 Web 应用的类，每个应用使用独立类加载器‌27。
+    ‌方法‌：重写 loadClass() 方法，直接加载特定类（如 SPI 服务发现）‌
+类卸载条件‌
+
+    类的所有实例已被回收。
+    类的 Class 对象未被引用。
+    加载该类的类加载器已被回收‌
+JVM 如何加载动态生成的类？‌
+    通过 ByteArrayOutputStream 生成字节码，调用 defineClass() 方法动态加载‌
+热部署实现原理‌
+    自定义类加载器加载修改后的类，旧类无引用后由垃圾回收器回收，新类生效‌
+
+
+
+‌一、JMM 核心概念‌
+
+    ‌内存划分与交互规则‌
+        ‌主内存‌：存储所有共享变量（如类静态变量、实例对象），所有线程均可访问‌15。
+        ‌工作内存‌：线程私有，存储主内存变量的副本，线程操作变量需先拷贝至工作内存，修改后同步回主内存‌15。
+        ‌交互操作‌：read（从主内存读取）、load（加载到工作内存）、use（使用）、assign（赋值）、store（存储回主内存）、write（主内存更新）‌58。
+
+    ‌三大特性‌
+        ‌原子性‌：基本类型（int、boolean 等）的读写操作不可分割（long/double 在 32 位系统中非原子）‌58。
+        ‌可见性‌：volatile 保证变量修改后立即刷新到主内存，其他线程可见；synchronized 和 final 也能实现可见性‌15。
+        ‌有序性‌：volatile 禁止指令重排序，synchronized 通过锁保证代码块串行执行‌15。
+
+    ‌先行发生原则（Happens-Before）‌
+        程序顺序规则、锁规则（解锁先于加锁）、volatile 规则（写先于读）、线程启动规则（start() 先于线程代码）、传递性规则等‌
+
+状态转换‌：新建（NEW）→ 就绪（RUNNABLE）→ 运行（RUNNING）→ 阻塞（BLOCKED/WAITING）→ 终止（TERMINATED）‌36。
+‌阻塞场景‌：等待锁（synchronized）、Object.wait()、Thread.sleep()、IO 操作等‌37。
+
+同步机制‌
+
+    ‌synchronized‌：基于对象监视器锁（Monitor），修饰代码块或方法，保证原子性和可见性‌57。
+    ‌ReentrantLock‌：可中断、支持公平锁、绑定多个条件变量（Condition），需手动释放锁‌78。
+    ‌volatile‌：仅保证可见性和有序性，不保证复合操作原子性（
+原子类与 CAS‌
+    ‌AtomicInteger 等‌：基于 CAS（Compare-And-Swap）实现无锁原子操作，避免线程阻塞‌57。
+    ‌CAS 问题‌：ABA 问题（可通过版本号解决）、自旋开销‌
+避免死锁策略‌
+    按固定顺序获取锁、设置锁超时（tryLock）、死锁检测（如 JStack 分析
+
+线程不安全场景‌
+
+    ‌复合操作‌：非原子操作（如 HashMap 并发扩容）导致数据丢失或覆盖‌47。
+    ‌对象逃逸‌：未正确同步的共享对象被多线程修改（如未加锁的 ArrayList 并发添加元素
+ReentrantLock 对比 synchronized‌
+‌特性‌ 	synchronized 	ReentrantLock
+‌锁获取方式‌ 	JVM 隐式管理 	需手动 lock() 和 unlock()‌78
+‌公平性‌ 	非公平锁（默认） 	支持公平锁与非公平锁‌27
+‌条件变量‌ 	不支持 	       支持多个 Condition‌78
+‌可中断性‌ 	不可中断 	支持 lockInterruptibly()
+
+    减少锁竞争‌
+        ‌缩小锁粒度‌：使用分段锁（如 ConcurrentHashMap）或细粒度锁（如只锁共享变量）‌27。
+        ‌无锁编程‌：基于 CAS 的原子类（如 AtomicInteger）实现线程安全‌78。
+
+    ‌锁消除与锁粗化‌
+        ‌锁消除‌：JIT 编译器对不可能存在竞争的锁进行消除（如局部对象锁）‌27。
+        ‌锁粗化‌：合并多个相邻锁操作，减少频繁加锁/解锁的开销‌27。
+
+    ‌避免死锁‌
+        ‌固定顺序加锁‌：按全局统一顺序获取多把锁（如按 hash 值排序）‌78。
+        ‌超时机制‌：使用 tryLock(timeout) 避免无限等待（如 ReentrantLock 支持）‌78。
+
+‌四、高频进阶问题‌
+
+    ‌如何实现线程安全的单例模式？‌
+        ‌双重检查锁（DCL）‌：结合 volatile 禁止指令重排序，保证单例唯一性‌27。
+
+        javaCopy Code
+        public class Singleton {
+            private volatile static Singleton instance;
+            public static Singleton getInstance() {
+                if (instance == null) {
+                    synchronized (Singleton.class) {
+                        if (instance == null) {
+                            instance = new Singleton();
+                        }
+                    }
+                }
+                return instance;
+            }
+        }
+
+    ‌CAS 的 ABA 问题如何解决？‌
+        ‌版本号机制‌：使用 AtomicStampedReference 记录变量修改版本号，避免值被其他线程修改后恢复原值‌78。
+
+    ‌线程池如何避免资源耗尽？‌
+        ‌参数配置‌：合理设置核心线程数、最大线程数、队列容量及拒绝策略（如 ThreadPoolExecutor.AbortPolicy）‌57。
+
+‌五、实战调优案例‌
+
+    ‌高并发计数器优化‌
+        ‌场景‌：多线程频繁累加计数器导致性能瓶颈。
+        ‌优化‌：使用 LongAdder 替代 AtomicLong，通过分段累加减少 CAS 竞争‌78。
+
+    ‌死锁检测与排查‌
+        ‌工具‌：通过 jstack 导出线程堆栈，分析线程阻塞链；或使用 Arthas 在线诊断工具定位死锁‌78。
+
+‌总结‌
+
+线程安全与锁优化的核心在于 ‌平衡性能与安全‌，需重点掌握：
+
+    synchronized 锁升级机制及适用场景‌27。
+    ReentrantLock 的灵活特性（如公平锁、条件变量）‌78。
+    锁优化策略（如无锁编程、锁消除/粗化）‌27。
+    面试中可结合源码（如 AbstractQueuedSynchronizer 实现）和实际案例（如高并发计数器、死锁排查）深入阐述。
+
+
+
 Spring 事务传播机制中 REQUIRES_NEW 的实现原理‌
     创建新事务时，暂停当前事务（通过 TransactionSynchronizationManager 解绑资源），新事务提交后恢复原事务‌
     
