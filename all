@@ -508,9 +508,28 @@ Kafka与传统消息队列的差异
 吞吐量：Kafka单Broker支持百万级QPS，传统队列（如RabbitMQ）通常在十万级。
 数据持久化：Kafka消息默认存储7天，支持TB级数据积累；传统队列多为内存缓存，易丢失。
 
-Kafka高可用性实现
+每秒处理几十万消息，延迟几毫秒。
+容错性：若副本数n，允许n-1个节点失败。
+高并发：支持数千个客户端同时读写。
+一个topic 对 多个partition，consummer group对多个partition。Partition的每个消息只能被consumer group中的一个consumer消费。可以启动多个group来重复消费。
+同一组的consumer的消费必须顺序（consumer要维护上次读到哪个offset）读取partition的message。如果觉得效率不高，可以扩展partition，再加新的consumer thread消费。
+最优设计：consumer group的consumer thread数量=partition数量，效率最高。
+Consumer rebalance触发条件：1 consumer 增减 ，2 broker，partition增减
 
-分区副本机制：每个Partition包含Leader和多个Follower副本，Leader故障时自动切换。
+消息有一个定长header和变长字节组成。，一般在1-10k之间，推荐不超过1M。
+支持批量发消息。根据配置不管消费未消费，会保存一定时间。过期才删除。
+磁盘空间增大不影响性能。
+Producer直接发消息到broker的leader partition，不需经过任何中介。So kafka集群的每个broker都可以相应producer，并返回topic的元信息，包括哪些机器是活的，topic的leader partition在哪…. Producer根据用户定义的partition key ，可以实现hash分区算法，如相同的userid的消息推到同一个partition。也可以随机分配。
+也可batch推送，如累计的消息数量，时间间隔，累计数据大小。通过batch 减少网络请求，磁盘IO ,如果途中丢失,或是一个broker挂了,可以重发.(等待所有备份节点接收到消息)
+
+
+
+Kafka高可用性实现
+Relication策略基于partition,而不是topic。Leader处理所有的读写情况。Leader跟踪follwer状态，如果follwer落后太多或者失效，会被leader从replicas同步列表删除。 
+如果所有副本都down了，kafka选择所有节点中（不只是ISR）第一个恢复的节点作为leader。
+分区副本机制：每个Partition包含Leader和多个Follower副本，Leader(保存其他备份节点列表,并维护备份状态同步)故障时自动切换。
+Leader先收到producer的消息，再发给其他的follower。
+
 ISR列表：仅同步副本（In-Sync Replicas）参与选举，确保数据一致性。
 
 生产者消息可靠性保障
@@ -560,7 +579,7 @@ Kafka Streams：提供窗口计算、状态存储等API，支持实时流处理�
 扩容消费者：增加消费者实例并行处理；
 跳过非关键数据：重置Offset至最新位置。
 
-2025年Kafka进阶面试题补充
+2025年Kafka进阶
 一、核心机制与设计原理
 
 Kafka的零拷贝（Zero-Copy）实现原理
@@ -570,7 +589,7 @@ Kafka的零拷贝（Zero-Copy）实现原理
 
 Kafka的稀疏索引（Sparse Index）设计
 
-作用：每个日志分段（Log Segment）仅记录部分消息的偏移量索引，降低索引文件体积，加速消息定位。
+作用：每个日志分段（Log Segment,包括.index索引文件 .log数据文件）仅记录部分消息的偏移量索引，降低索引文件体积，加速消息定位。Segment文件名为上一个全局partition的最大offset
 查询优化：通过二分查找快速定位目标消息所在的分段和位置。
 二、消费者与流处理
 
@@ -613,3 +632,6 @@ Q: 如何保证Kafka集群的跨版本升级兼容性？
 A: 分阶段滚动升级，优先升级Follower节点，验证协议兼容性（inter.broker.protocol.version）。
 Q: 为何Kafka不适用低频小数据量场景？
 A: 分区和副本机制带来固定资源开销，低频场景下性价比低。
+====print
+ 
+二分查找利用有序性，从中间往两边查找
