@@ -1,0 +1,41 @@
+装饰器（Decorators）‌
+功能：在不修改原函数代码的情况下扩展功能（如日志、权限校验）
+示例实现：
+
+pythonCopy Code
+def decorator(func):
+    def wrapper(*args, **kwargs):
+        print("扩展功能")  # ‌:ml-citation{ref="1,2" data="citationList"}
+        return func(*args, **kwargs)
+    return wrapper
+
+
+GIL（全局解释器锁）‌
+
+    作用：保证同一时刻仅有一个线程执行字节码，确保线程安全‌13
+    影响：多线程无法充分利用多核CPU，CPU密集型任务建议使用多进程
+
+生成器（Generators） vs 迭代器（Iterators）‌
+    生成器通过yield关键字实现，按需生成数据（节省内存）‌
+    迭代器需实现__iter__()和__next__()方法
+
+深拷贝与浅拷贝‌
+    copy.copy()：浅拷贝，只复制父对象
+    copy.deepcopy()：深拷贝，递归复制子对象‌
+列表 vs 元组‌
+    列表可变（list.append()），元组不可变（哈希安全）‌6
+
+‌字典键的类型限制‌
+
+    键必须是不可变类型（如字符串、数字、元组）‌6
+
+‌列表推导式‌
+示例：[x**2 for x in range(10) if x%2==0]‌6
+
+删除列表重复元素
+def remove_duplicates(lst):
+    return list(set(lst))  
+ #或保留顺序：sorted(set(lst), key=lst.index)
+
+字典列表排序‌
+sorted_list = sorted(alist, key=lambda x: x['age'])  # ‌:ml-citation{ref="5" data="citationList"}
