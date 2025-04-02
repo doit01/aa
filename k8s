@@ -1,0 +1,20 @@
+storage class's provisioner  { longhore,cephFs}
+longhorn 专门为k8s 设计的块存储。
+
+cephfs提供就是一个文件系统,ceph的一个组成部分，不像rbd一样需要自己格式化
+
+文件系统(cephfs)与块存储(rbd)不同的是，块存储只需要一个存储池就可以，
+而文件系统需要2个存储池，一个用来存放元数据，存放元数据的存储池需要有一个mds来读取。一个用来存放数据
+
+ceph 大规模 高可靠 支持块，对象 ，文件
+
+minio 小规模 容易 对象存储 ，支持S3 API
+
+CSI 是 Kubernetes 官方主推的存储插件标准，支持动态卷供应、快照、克隆及扩展等高级功能，与云服务商和分布式存储系统（如 AWS EBS、GCP Persistent Disk、Ceph 等）深度集成‌
+通过 ‌StorageClass‌ 实现动态卷分配，结合 ‌PV/PVC‌ 机制自动化管理存储资源‌
+
+ internal provisioner of Ceph RBD is deprecated. Please use CephFS RBD CSI driver.
+
+
+kube-proxy‌：维护网络规则，实现Service的负载均衡与流量转发‌
+
