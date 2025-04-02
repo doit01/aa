@@ -1,0 +1,21 @@
+shallowRef是Vue3中的一个响应式API，用于创建浅层响应式对象。与ref不同，shallowRef仅对.value属性进行响应式跟踪，不会递归处理嵌套对象。这意味着修改嵌套属性时不会触发视图更新
+性能敏感场景‌：优先用于深层嵌套对象、大数据集合以减少递归追踪开销‌14。
+‌数据不可变或外部集成‌：适用于仅需监听整体引用变化的场景‌27。
+‌精准更新控制‌：需手动管理更新逻辑时，通过替换 .value 触发响应‌
+
+Vue 2：选项式 API（data、methods 分离）‌2。
+Vue 3：组合式 API（setup 函数整合逻辑，支持逻辑复用
+
+
+    Vue 2 无法检测对象属性新增/删除（需用 Vue.set/Vue.delete）和数组部分方法（如 splice 需覆盖）‌13。
+    Vue 3 的 Proxy 已解决上述问题‌2。
+生命周期调整‌
+    Vue 3 移除 beforeCreate 和 created，统一由 setup 替代‌23。
+    新增 onBeforeUnmount 和 onUnmounted 替代 beforeDestroy 和 destroyed‌23。
+
+Vue 3 支持 ‌Tree Shaking‌（按需引入模块），打包体积更小‌
+
+组件通信方式‌
+    ‌父子‌：props + $emit‌14。
+    ‌兄弟/跨级‌：事件总线（Event Bus）、provide/inject、Vuex/Pinia‌45。
+    ‌Vue 3 新增‌：defineProps、defineEmits 编译器宏‌2。
