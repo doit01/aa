@@ -1,0 +1,121 @@
+接口（interface）与类型别名（type）的区别‌
+
+    ‌接口‌：定义对象结构，支持继承（extends）和声明合并（同名接口自动合并）‌13。
+    ‌类型别名‌：可为任意类型命名（联合、交叉、元组等），不支持合并‌34。
+
+typescriptCopy Code
+interface User { name: string; }
+interface User { age: number; }  // 合并为 { name: string; age: number; }
+type ID = string | number;        // 联合类型别名
+
+联合类型与交叉类型‌
+
+    ‌联合类型（|）‌：允许变量为多种类型之一，如string | number‌45。
+    ‌交叉类型（&）‌：合并多个类型的属性，如A & B‌45。
+
+typescriptCopy Code
+type Admin = { role: string } & User;  // 合并Admin与User属性
+
+any与unknown的区别‌
+
+    ‌any‌：绕过类型检查，可能导致运行时错误‌58。
+    ‌unknown‌：需通过类型断言或收窄后才可操作，更安全‌。
+
+typescriptCopy Code
+let data: unknown = fetchData();
+if (typeof data === "string") data.toUpperCase();  // 类型收窄
+
+模块（module）与命名空间（namespace）‌
+    ‌模块‌：基于文件作用域，使用import/export管理依赖‌36。
+    ‌命名空间‌：逻辑分组代码，避免全局污染（适用于旧代码迁移）‌36。
+
+实用工具类型（Utility Types）‌
+
+    ‌Partial<T>‌：所有属性变为可选。
+    ‌Pick<T, K>‌：选取指定属性‌5。
+
+typescriptCopy Code
+type User = { id: number; name: string; };
+type UserPreview = Pick<User, "name">;  // { name: string; }
+
+如何实现一个DeepReadonly类型？‌
+    递归遍历对象属性并添加readonly修饰符‌
+
+Exclude<T, U>与Extract<T, U>的区别‌
+
+    ‌Exclude‌：从T中移除U中的类型‌7。
+    ‌Extract‌：保留T中与U匹配的类型‌7。
+type T = Exclude<'a' | 'b' | 'c', 'a' | 'b'>;  // 'c'
+type U = Extract<'a' | 1 | false, string>;      // 'a'
+
+如何为第三方库扩展类型定义？‌
+    使用声明合并（declare module）或编写.d.ts文件‌36。
+typescriptCopy Code
+// 扩展axios类型
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    retry?: number;
+  }
+}
+
+如何避免this的类型丢失问题？‌
+
+    显式声明函数中的this类型‌58。
+
+typescriptCopy Code
+interface User {
+  name: string;
+  greet(this: User): void;
+}
+const user: User = {
+  name: 'Alice',
+  greet() { console.log(this.name); }  // this类型明确为User
+};
+
+
+// 定义一个键为字符串、值为数字的对象类型
+type Scores = Record<string, number>;
+const examScores: Scores = { math: 90, english: 85 };
+// 联合类型作为键
+type Keys = "name" | "age";
+type Person = Record<Keys, string | number>;
+const user: Person = { name: "Alice", age: 25 };
+适用场景‌：
+    定义枚举值的映射关系。
+    动态生成具有固定值类型的对象结构
+
+// 从联合类型中排除特定类型
+type AllowedKeys = "id" | "name" | "email";
+type SensitiveKeys = Exclude<AllowedKeys, "email">; // "id" | "name"
+
+// 排除基本类型
+type Primitive = string | number | boolean;
+type NonString = Exclude<Primitive, string>; // number | boolean
+Exclude<T, U>‌
+‌用途‌：从类型 T 中排除U 的类型。
+
+
+
+interface User {
+  id: number;
+  name: string;
+  password: string;
+  email: string;
+}
+
+// 移除敏感字段（"password"）
+type SafeUser = Omit<User, "password">;
+// 等价于 { id: number; name: string; email: string }
+
+// 移除多个字段
+type PublicProfile = Omit<User, "password" | "email">;
+// 等价于 { id: number; name: string }
+‌适用场景‌：
+    扩展接口时隐藏敏感字段。
+    复用已有类型时剔除冗余属性。
+
+Exclude vs Omit‌
+    Exclude 操作的是 ‌联合类型‌，Omit 操作的是 ‌对象类型‌
+type T1 = Exclude<"a" | "b" | "c", "a">;       // "b" | "c"
+type T2 = Omit<{ a: 1; b: 2; c: 3 }, "a">;      // { b: 2; c: 3 }
+
