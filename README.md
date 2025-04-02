@@ -1,3 +1,54 @@
+CAP理论‌
+定义‌：分布式系统无法同时满足‌一致性（C）‌、‌可用性（A）‌、‌分区容错性（P）‌，需在CA/CP/AP中取舍，通常优先保证P‌。
+应用场景‌：
+CP系统‌：如ZooKeeper，强一致但可能牺牲可用性‌。
+AP系统‌：如Eureka，高可用但可能数据短暂不一致‌。
+
+BASE理论‌
+核心思想‌：通过‌基本可用（BA）‌、‌软状态（S）‌、‌最终一致性（E）‌实现高可用性，适用于弱一致性场景（如电商库存扣减）‌。 
+二、分布式事务处理‌
+
+2PC（两阶段提交）‌：
+阶段1（投票）‌：协调者询问参与者是否可提交；‌阶段2（提交/回滚）‌：根据投票结果执行提交或回滚，存在同步阻塞和单点故障问题‌。
+
+分布式事务解决方案‌
+TCC（补偿事务）‌：
+Try‌：预留资源；‌Confirm‌：确认提交；‌Cancel‌：失败回滚，需业务代码实现补偿逻辑（如订单状态回滚）‌。
+消息队列（MQ）‌：
+本地消息表‌：事务与消息发送绑定，通过异步重试保证最终一致性（如订单创建后发送消息扣减库存）‌。
+Seata框架‌：支持AT（自动补偿）、TCC、XA等模式，通过全局事务ID管理跨服务事务‌。
+三、分布式系统解决方案‌
+分布式锁实现‌
+Redis实现‌：
+使用SET key value NX EX命令加锁，Lua脚本保证原子性解锁，需解决锁续期问题（如Redisson看门狗机制）‌。
+ZooKeeper实现‌：通过临时顺序节点监听机制，避免锁失效导致的并发问题‌。
+分布式缓存与一致性‌
+缓存穿透‌：空值缓存+布隆过滤器拦截非法请求‌。
+缓存雪崩‌：随机过期时间+多级缓存（如本地缓存+Redis）‌。
+数据一致性‌：采用双写策略+消息队列异步校验（如先更新DB再删除缓存）‌。
+四、场景与实战问题‌
+如何设计高并发秒杀系统？‌
+分层削峰‌：CDN静态资源缓存+网关限流（如令牌桶算法）‌。
+异步处理‌：请求队列化（如RabbitMQ）+库存预扣减（Redis原子操作）‌。
+最终一致性‌：订单状态异步通知+库存回补机制（防止超卖）‌。
+
+分布式ID生成方案‌
+
+雪花算法（Snowflake）‌：时间戳+机器ID+序列号，保证全局唯一且趋势递增‌。
+Redis原子操作‌：INCR命令生成分段ID，需解决持久化问题‌。
+五、高频代码示例‌
+java
+Copy Code
+// TCC模式示 例（Try阶段预留资源）
+public boolean tryReserveInventory(Long productId, Integer count) {
+    // 冻结库存，非实际扣减
+    String key = "inventory:freeze:" + productId;
+    return redisTemplate.opsForValue().increment(key, count) >= 0;
+}
+
+
+
+
 jdk17 default gc is G1 
 java -XX:+PrintCommandLineFlags -version
 -XX:InitialHeapSize=16777216 -XX:MaxHeapSize=268435456 -XX:MinHeapSize=6815736 -XX:+PrintCommandLineFlags -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC 
