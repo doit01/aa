@@ -1,0 +1,347 @@
+java
+ 【强制】如上所示 BigDecimal 的等值比较应使用 compareTo()方法，而不是 equals()方法。
+说明：equals()方法会比较值和精度（1.0 与 1.00 返回结果为 false），而 compareTo()则会忽略精度
+
+【强制】禁止使用构造方法 BigDecimal(double)的方式把 double 值转化为 BigDecimal 对象。
+说明：BigDecimal(double)存在精度损失风险，在精确计算或值比较的场景中可能会导致业务逻辑异常。
+如：BigDecimal g = new BigDecimal(0.1F); 实际的存储值为：0.10000000149
+正例：优先推荐入参为 String 的构造方法，或使用 BigDecimal 的 valueOf 方法，此方法内部其实执行了
+Double 的 toString，而 Double 的 toString 按 double 的实际能表达的精度对尾数进行了截断。
+BigDecimal recommend1 = new BigDecimal("0.1");
+BigDecimal recommend2 = BigDecimal.valueOf(0.1)
+
+【强制】日期格式化时，传入 pattern 中表示年份统一使用小写的 y。
+正例：表示日期和时间的格式如下所示：
+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+【强制】在日期格式中分清楚大写的 M 和小写的 m，大写的 H 和小写的 h 分别指代的意义。
+说明：日期格式中的这两对字母表意如下：
+1） 表示月份是大写的 M；
+2） 表示分钟则是小写的 m；
+3） 24 小时制的是大写的 H；
+4） 12 小时制的则是小写的 h
+
+强制】不允许在程序任何地方中使用：1）java.sql.Date。 2）java.sql.Time。
+3）java.sql.Timestamp。
+
+【强制】关于 hashCode 和 equals 的处理，遵循如下规则：
+1） 只要覆写 equals，就必须覆写 hashCode。
+2） 因为 Set 存储的是不重复的对象，依据 hashCode 和 equals 进行判断，所以 Set 存储的对象必须覆写
+这两种方法。
+3） 如果自定义对象作为 Map 的键，那么必须覆写 hashCode 和 equals。
+说明：String 因为覆写了 hashCode 和 equals 方法，所以可以愉快地将 String 对象作为 key 来使用。
+
+【强制】ArrayList 的 subList 结果不可强转成 ArrayList，否则会抛出 ClassCastException 异
+常：java.util.RandomAccessSubList cannot be cast to java.util.ArrayList。
+
+【强制】Collections 类返回的对象，如：emptyList()/singletonList()等都是 immutable list，
+不可对其进行添加或者删除元素的操作
+强制】在使用 java.util.stream.Collectors 类的 toMap()方法转为 Map 集合时，一定要使
+用含有参数类型为 BinaryOperator，参数名为 mergeFunction 的方法，否则当出现相同 key
+值时会抛出 IllegalStateException 异常。
+说明：参数 mergeFunction 的作用是当出现 key 重复时，自定义对 value 的处理策略。
+正例：
+List<Pair<String, Double>> pairArrayList = new ArrayList<>(3);
+pairArrayList.add(new Pair<>("version", 12.10));
+pairArrayList.add(new Pair<>("version", 12.19));
+pairArrayList.add(new Pair<>("version", 6.28));
+Map<String, Double> map = pairArrayList.stream().collect(
+// 生成的 map 集合中只有一个键值对：{version=6.28}
+Collectors.toMap(Pair::getKey, Pair::getValue, (v1, v2) -> v2));
+反例：
+String[] departments = new String[] {"iERP", "iERP", "EIBU"};
+// 抛出 IllegalStateException 异常
+Map<Integer, String> map = Arrays.stream(departments)
+.collect(Collectors.toMap(String::hashCode, str -> str)
+
+在使用 java.util.stream.Collectors 类的 toMap()方法转为 Map 集合时，一定要注
+意当 value 为 null 时会抛 NPE 异常。
+说明：在 java.util.HashMap 的 merge 方法里会进行如下的判断：
+if (value == null || remappingFunction == null)
+throw new NullPointerException();
+
+【强制】在 subList 场景中，高度注意对父集合元素的增加或删除，均会导致子列表的遍历、
+增加、删除产生 ConcurrentModificationException 异常。
+
+【强制】在使用 Collection 接口任何实现类的 addAll()方法时，都要对输入的集合参数进行
+NPE 判断。
+说明：在 ArrayList#addAll 方法的第一行代码即 Object[] a = c.toArray(); 其中 c 为输入集合参数，如果
+为 null，则直接抛出异常
+【强制】泛型通配符<? extends T>来接收返回的数据，此写法的泛型集合不能使用 add 方法，
+而<? super T>不能使用 get 方法，两者在接口调用赋值的场景中容易出错。
+说明：扩展说一下 PECS(Producer Extends Consumer Super)原则：第一、频繁往外读取内容的，适合用
+<? extends T>。第二、经常往里插入的，适合用<? super T>
+
+【强制】不要在 foreach 循环里进行元素的 remove/add 操作。remove 元素请使用 Iterator
+方式，如果并发操作，需要对 Iterator 对象加锁。
+正例：
+List<String> list = new ArrayList<>();
+list.add("1");
+list.add("2");
+Iterator<String> iterator = list.iterator();
+while (iterator.hasNext()) {
+String item = iterator.next();
+if (删除元素的条件) {
+iterator.remove();
+}
+}
+反例：
+for (String item : list) {
+if ("1".equals(item)) {
+list.remove(item);
+}
+}
+
+ 【参考】合理利用好集合的有序性(sort)和稳定性(order)，避免集合的无序性(unsort)和不稳
+定性(unorder)带来的负面影响。
+说明：有序性是指遍历的结果是按某种比较规则依次排列的。稳定性指集合每次遍历的元素次序是一定的。
+如：ArrayList 是 order/unsort；HashMap 是 unorder/unsort；TreeSet 是 order/sort。
+
+
+【推荐】高度注意 Map 类集合 K/V 能不能存储 null 值的情况，如下表格：
+集合类 Key Value Super 说明
+Hashtable 不允许为 null 不允许为 null Dictionary 线程安全
+ConcurrentHashMap 不允许为 null 不允许为 null AbstractMap 锁分段技术（JDK8:CAS）
+TreeMap 不允许为 null 允许为 null AbstractMap 线程不安全
+HashMap 允许为 null 允许为 null AbstractMap 线程不安全
+
+【强制】线程资源必须通过线程池提供，不允许在应用中自行显式创建线程
+
+【强制】高并发时，同步调用应该去考量锁的性能损耗。能用无锁数据结构，就不要用锁；能
+锁区块，就不要锁整个方法体；能用对象锁，就不要用类锁。
+说明：尽可能使加锁的代码块工作量尽可能的小，避免在锁代码块中调用 RPC 方法
+
+【强制】对多个资源、数据库表、对象同时加锁时，需要保持一致的加锁顺序，否则可能会造
+成死锁。
+说明：线程一需要对表 A、B、C 依次全部加锁后才可以进行更新操作，那么线程二的加锁顺序也必须是 A、
+B、C，否则可能出现死锁
+
+【强制】在使用阻塞等待获取锁的方式中，必须在 try 代码块之外，并且在加锁方法与 try 代
+码块之间没有任何可能抛出异常的方法调用，避免加锁成功后，在 finally 中无法解锁。
+说明一：如果在 lock 方法与 try 代码块之间的方法调用抛出异常，那么无法解锁，造成其它线程无法成功
+获取锁。
+说明二：如果 lock 方法在 try 代码块之内，可能由于其它方法抛出异常，导致在 finally 代码块中，unlock
+对未加锁的对象解锁，它会调用 AQS 的 tryRelease 方法（取决于具体实现类），抛出
+IllegalMonitorStateException 异常
+说明三：在 Lock 对象的 lock 方法实现中可能抛出 unchecked 异常，产生的后果与说明二相同。
+正例：
+Lock lock = new XxxLock();
+// ...
+lock.lock();
+try {
+doSomething();
+doOthers();
+} finally {
+lock.unlock();
+}
+反例：
+Lock lock = new XxxLock();
+// ...
+Java 开发手册
+19/59
+try {
+// 如果此处抛出异常，则直接执行 finally 代码块
+doSomething();
+// 无论加锁是否成功，finally 代码块都会执行
+lock.lock();
+doOthers();
+} finally {
+lock.unlock();
+}
+
+【强制】线程池不允许使用 Executors 去创建，而是通过 ThreadPoolExecutor 的方式，这
+样的处理方式让写的同学更加明确线程池的运行规则，规避资源耗尽的风险。
+说明：Executors 返回的线程池对象的弊端如下：
+1） FixedThreadPool 和 SingleThreadPool：
+允许的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致 OOM。
+2） CachedThreadPool：
+允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM。
+
+【强制】SimpleDateFormat 是线程不安全的类，一般不要定义为 static 变量，如果定义为 static，
+必须加锁，或者使用 DateUtils 工具类。
+
+【强制】必须回收自定义的 ThreadLocal 变量，尤其在线程池场景下，线程经常会被复用，
+如果不清理自定义的 ThreadLocal 变量，可能会影响后续业务逻辑和造成内存泄露等问题。
+尽量在代理中使用 try-finally 块进行回收。
+正例：
+objectThreadLocal.set(userInfo);
+try {
+// ...
+} finally {
+objectThread
+
+
+【强制】并发修改同一记录时，避免更新丢失，需要加锁。要么在应用层加锁，要么在缓存加
+锁，要么在数据库层使用乐观锁，使用 version 作为更新依据。
+说明：如果每次访问冲突概率小于 20%，推荐使用乐观锁，否则使用悲观锁。乐观锁的重试次数不得小于
+3 次。
+
+强制】多线程并行处理定时任务时，Timer 运行多个 TimeTask 时，只要其中之一没有捕获抛
+出的异常，其它任务便会自动终止运行，使用 ScheduledExecutorService 则没有这个问题。
+
+
+强制】在使用尝试机制来获取锁的方式中，进入业务代码块之前，必须先判断当前线程是否
+持有锁。锁的释放规则与锁的阻塞等待方式相同。
+说明：Lock 对象的 unlock 方法在执行时，它会调用 AQS 的 tryRelease 方法（取决于具体实现类），如果
+当前线程不持有锁，则抛出 IllegalMonitorStateException 异常。
+正例：
+Lock lock = new XxxLock();
+// ...
+boolean isLocked = lock.tryLock();
+if (isLocked) {
+try {
+doSomething();
+doOthers();
+} finally {
+lock.unlock();
+}
+}
+
+【参考】volatile 解决多线程内存不可见问题。对于一写多读，是可以解决变量同步问题，但
+是如果多写，同样无法解决线程安全问题。
+说明：如果是 count++操作，使用如下类实现：AtomicInteger count = new AtomicInteger();
+count.addAndGet(1); 如果是 JDK8，推荐使用 LongAdder 对象，比 AtomicLong 性能更好（减少乐观
+锁的重试次数）。
+18. 【参考】HashMap 在容量不够进行 resize 时由于高并发可能出现死链，导致 CPU 飙升，在
+开发过程中注意规避此风险。
+19. 【参考】ThreadLocal 对象使用 static 修饰，ThreadLocal 无法解决共享对象的更新问题。
+说明：这个变量是针对一个线程内所有操作共享的，所以设置为静态变量，所有此类实例共享此静态变量，
+也就是说在类第一次被使用时装载，只分配一块存储空间，所有此类的对象(只要是这个线程内定义的)都可
+以操控这个变量
+
+
+【强制】在高并发场景中，避免使用”等于”判断作为中断或退出的条件。
+说明：如果并发控制没有处理好，容易产生等值判断被“击穿”的情况，使用大于或小于的区间判断条件
+来代替。
+Java 开发手册
+22/59
+反例：判断剩余奖品数量等于 0 时，终止发放奖品，但因为并发处理错误导致奖品数量瞬间变成了负数，
+这样的话，活动无法终止。
+
+
+【强制】HTTP 请求通过 URL 传递参数时，不能超过 2048 字节。
+说明：不同浏览器对于 URL 的最大长度限制略有不同，并且对超出最大长度的处理逻辑也有差异，2048
+字节是取所有浏览器的最小值。
+Java 开发手册
+27/59
+反例：某业务将退货的商品 id 列表放在 URL 中作为参数传递，当一次退货商品数量过多时，URL 参数超长，
+传递到后端的参数被截断，导致部分商品未能正确退货。
+8. 【强制】HTTP 请求通过 body 传递内容时，必须控制长度，超出最大长度后，后端解析会出
+错。
+说明：nginx 默认限制是 1MB，tomcat 默认限制为 2MB，当确实有业务需要传较大内容时，可以通过调
+大服务器端的限制。
+
+【强制】在使用正则表达式时，利用好其预编译功能，可以有效加快正则匹配速度。
+说明：不要在方法体内定义：Pattern pattern = Pattern.compile(“规则”);
+2. 【强制】避免用 Apache Beanutils 进行属性的 copy。
+说明：Apache BeanUtils 性能较差，可以使用其他方案比如 Spring BeanUtils, Cglib BeanCopier，注意
+均是浅拷贝
+
+【强制】不要在 finally 块中使用 return。
+
+【强制】捕获异常与抛异常，必须是完全匹配，或者捕获异常是抛异常的父类。
+说明：如果预期对方抛的是绣球，实际接到的是铅球，就会产生意外情况
+
+
+【强制】日志打印时禁止直接用 JSON 工具将对象转换成 String。
+说明：如果对象里某些 get 方法被覆写，存在抛出异常的情况，则可能会因为打印日志而影响正常业务流
+程的执行。
+正例：打印日志时仅打印出业务相关属性值或者调用其对象的 toString()方法
+
+
+
+
+强制】业务上具有唯一特性的字段，即使是组合字段，也必须建成唯一索引。
+说明：不要以为唯一索引影响了 insert 速度，这个速度损耗可以忽略，但提高查找速度是明显的；另外，
+即使在应用层做了非常完善的校验控制，只要没有唯一索引，根据墨菲定律，必然有脏数据产生。
+2. 【强制】超过三个表禁止 join。需要 join 的字段，数据类型保持绝对一致；多表关联查询时，
+保证被关联的字段需要有索引。
+说明：即使双表 join 也要注意表索引、SQL 性能。
+3. 【强制】在 varchar 字段上建立索引时，必须指定索引长度，没必要对全字段建立索引，根据
+实际文本区分度决定索引长度。
+Java 开发手册
+40/59
+说明：索引的长度与区分度是一对矛盾体，一般对字符串类型数据，长度为 20 的索引，区分度会高达 90%
+以上，可以使用 count(distinct left(列名, 索引长度))/count(*)的区分度来确定。
+4. 【强制】页面搜索严禁左模糊或者全模糊，如果需要请走搜索引擎来解决。
+说明：索引文件具有 B-Tree 的最左前缀匹配特性，如果左边的值未确定，那么无法使用此索引。
+5. 【推荐】如果有 order by 的场景，请注意利用索引的有序性。order by 最后的字段是组合索
+引的一部分，并且放在索引组合顺序的最后，避免出现 file_sort 的情况，影响查询性能。
+正例：where a=? and b=? order by c; 索引：a_b_c
+反例：索引如果存在范围查询，那么索引有序性无法利用，如：WHERE a>10 ORDER BY b; 索引 a_b 无
+法排序。
+6. 【推荐】利用覆盖索引来进行查询操作，避免回表。
+说明：如果一本书需要知道第 11 章是什么标题，会翻开第 11 章对应的那一页吗？目录浏览一下就好，这
+个目录就是起到覆盖索引的作用。
+正例：能够建立索引的种类分为主键索引、唯一索引、普通索引三种，而覆盖索引只是一种查询的一种效
+果，用 explain 的结果，extra 列会出现：using index。
+7. 【推荐】利用延迟关联或者子查询优化超多分页场景。
+说明：MySQL 并不是跳过 offset 行，而是取 offset+N 行，然后返回放弃前 offset 行，返回 N 行，那当
+offset 特别大的时候，效率就非常的低下，要么控制返回的总页数，要么对超过特定阈值的页数进行 SQL
+改写。
+正例：先快速定位需要获取的 id 段，然后再关联：
+SELECT t1.* FROM 表 1 as t1, (select id from 表 1 where 条件 LIMIT 100000,20 ) as t2 where t1.id=t2.id
+8. 【推荐】SQL 性能优化的目标：至少要达到 range 级别，要求是 ref 级别，如果可以是 consts
+最好。
+说明：
+1） consts 单表中最多只有一个匹配行（主键或者唯一索引），在优化阶段即可读取到数据。
+2） ref 指的是使用普通的索引（normal index）。
+3） range 对索引进行范围检索。
+反例：explain 表的结果，type=index，索引物理文件全扫描，速度非常慢，这个 index 级别比较 range
+还低，与全表扫描是小巫见大巫。
+9. 【推荐】建组合索引的时候，区分度最高的在最左边。
+正例：如果 where a=? and b=?，a 列的几乎接近于唯一值，那么只需要单建 idx_a 索引即可。
+说明：存在非等号和等号混合判断条件时，在建索引时，请把等号条件的列前置。如：where c>? and d=?
+那么即使 c 的区分度更高，也必须把 d 放在索引的最前列，即建立组合索引 idx_d_c。
+10. 【推荐】防止因字段类型不同造成的隐式转换，导致索引失效
+
+
+服务器
+1. 【推荐】高并发服务器建议调小 TCP 协议的 time_wait 超时时间。
+说明：操作系统默认 240 秒后，才会关闭处于 time_wait 状态的连接，在高并发访问下，服务器端会因为
+处于 time_wait 的连接数太多，可能无法建立新的连接，所以需要在服务器上调小此等待值。
+Java 开发手册
+47/59
+正例：在 linux 服务器上请通过变更/etc/sysctl.conf 文件去修改该缺省值（秒）：
+net.ipv4.tcp_fin_timeout = 30
+2. 【推荐】调大服务器所支持的最大文件句柄数（File Descriptor，简写为 fd）。
+说明：主流操作系统的设计是将 TCP/UDP 连接采用与文件一样的方式去管理，即一个连接对应于一个 fd。
+主流的 linux 服务器默认所支持最大 fd 数量为 1024，当并发连接数很大时很容易因为 fd 不足而出现“open
+too many files”错误，导致新的连接无法建立。建议将 linux 服务器所支持的最大句柄数调高数倍（与服
+务器的内存数量相关）。
+3. 【推荐】给 JVM 环境参数设置-XX:+HeapDumpOnOutOfMemoryError 参数，让 JVM 碰到 OOM
+场景时输出 dump 信息。
+说明：OOM 的发生是有概率的，甚至相隔数月才出现一例，出错时的堆内信息对解决问题非常有帮助。
+4. 【推荐】在线上生产环境，JVM 的 Xms 和 Xmx 设置一样大小的内存容量，避免在 GC 后调整
+堆大小带来的压力。
+5. 【参考】服务器内部重定向必须使用 forward；外部重定向地址必须使用 URL Broker 生成，否
+则因线上采用 HTTPS 协议而导致浏览器提示“不安全“。此外，还会带来 URL 维护不一致的
+问题
+
+
+【推荐】避免如下误解：敏捷开发 = 讲故事 + 编码 + 发布。
+说明：敏捷开发是快速交付迭代可用的系统，省略多余的设计方案，摒弃传统的审批流程，但核心关键点上
+的必要设计和文档沉淀是需要的。
+反例：某团队为了业务快速发展，敏捷成了产品经理催进度的借口，系统中均是勉强能运行但像面条一样
+的代码，可维护性和可扩展性极差，一年之后，不得不进行大规模重构，得不偿失
+
+
+推荐】系统架构设计时明确以下目标：
+⚫ 确定系统边界。确定系统在技术层面上的做与不做。
+⚫ 确定系统内模块之间的关系。确定模块之间的依赖关系及模块的宏观输入与输出。
+⚫ 确定指导后续设计与演化的原则。使后续的子系统或模块设计在一个既定的框架内和技术方向上继
+续演化。
+Java 开发手册
+49/59
+⚫ 确定非功能性需求。非功能性需求是指安全性、可用性、可扩展性等
+
+
+【推荐】类在设计与实现时要符合单一原则。
+说明：单一原则最易理解却是最难实现的一条规则，随着系统演进，很多时候，忘记了类设计的初衷
+
+【推荐】谨慎使用继承的方式来进行扩展，优先使用聚合/组合的方式来实现。
+
+【推荐】系统设计阶段，注意对扩展开放，对修改闭合。
+说明：极端情况下，交付的代码是不可修改的，同一业务域内的需求变化，通过模块或类的扩展来实现
+
+admin
+3DL@w3z0U
