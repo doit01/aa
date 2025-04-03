@@ -1,0 +1,85 @@
+Cassandra是什么？主要特点有哪些？‌
+
+分布式NoSQL数据库，具备高扩展性、无单点故障、弹性伸缩、高性能读写（基于LSM树存储引擎）、灵活数据模型（支持动态列和集合类型）等特点‌。
+高可用性通过数据多副本复制（Replication Strategy）和去中心化的环形架构（Ring Architecture）实现‌。
+
+Key Space在Cassandra中的作用？对应SQL中的什么概念？‌
+
+Key Space是逻辑容器，定义数据复制策略和副本数，对应SQL中的“数据库”。
+二、数据模型与存储
+
+Primary Key的工作机制‌
+
+主键由分区键（Partition Key）和集群键（Clustering Key）组成，分区键决定数据在集群中的分布位置，集群键控制分区内数据的排序‌。
+
+Column Family与Super Column Family的区别‌
+
+Column Family是行式存储结构，每行包含动态列；Super Column Family是嵌套列结构（已弃用，推荐使用复合主键替代）‌。
+
+如何实现二级索引？‌
+
+使用CREATE INDEX创建基于列的二级索引，适用于低基数列；高基数列建议使用物化视图（Materialized Views）或自定义索引（如SASI索引）‌。
+三、架构与数据分布
+
+Ring Architecture的核心设计‌
+
+集群节点组成环形拓扑，数据通过一致性哈希分布到不同节点，支持动态扩缩容‌。
+
+Partitioner的作用及对数据分布的影响‌
+
+Partitioner（如Murmur3Partitioner）计算分区键的哈希值，决定数据存储位置；选择不同的Partitioner会影响数据均衡性‌。
+
+Virtual Nodes（vnodes）的作用‌
+
+虚拟节点允许单个物理节点管理多个分区，提升数据均衡性和故障恢复效率‌。
+四、一致性与容错机制
+
+一致性级别（Consistency Levels）‌
+
+包括ONE、QUORUM、ALL等，控制读写操作时需达成一致的副本数。例如，QUORUM要求多数副本响应‌。
+
+Hinted Handoff机制‌
+
+当目标节点不可用时，写入操作会被暂存为Hint，待节点恢复后补发，保证最终一致性‌。
+
+数据删除与Tombstones‌
+
+删除操作生成Tombstone标记，Compaction过程清理过期数据；过多Tombstone可能影响查询性能‌。
+五、性能调优与运维
+
+性能优化方法‌
+
+调整Memtable和SSTable配置、优化Compaction策略（如STCS或LCS）、合理选择一致性级别、使用批处理写入等‌。
+
+Compaction过程及其影响‌
+
+合并SSTable文件以释放空间、提升查询效率；不同策略（如Size-Tiered或Leveled Compaction）对I/O和CPU消耗有差异‌。
+
+监控与管理工具‌
+
+使用nodetool工具监控集群状态（如nodetool status）、执行修复（nodetool repair）或调整副本数‌。
+六、常见问题与安全
+
+节点故障处理流程‌
+
+通过Gossip协议检测节点状态，自动触发数据修复（Read Repair）或Hinted Handoff恢复数据‌。
+
+Cassandra的安全特性‌
+
+支持SSL加密通信、客户端认证（Authentication）、基于角色的权限控制（Authorization）及数据加密（Transparent Data Encryption）‌。
+七、对比与其他数据库
+与关系型数据库的区别‌
+无固定Schema、支持水平扩展、最终一致性优先（可配置强一致性）、无复杂Join操作（需通过反范式化设计实现）‌。
+
+
+Cassandra的主要特点就是它不是一个数据库，而是由一堆数据库节点共同构成的一个分布式网络服务，对Cassandra 的一个写操作，会被复制到其他节点上去，对Cassandra的读操作，也会被路由到某个节点上面去读取。对于一个Cassandra集群来说，扩展性能是比较简单的事情，只管在集群里面添加节点就可以了。
+这里有很多理由来选择Cassandra用于您的网站。和其他数据库比较，有三个突出特点：
+模式灵活
+使用Cassandra，像文档存储，你不必提前解决记录中的字段。你可以在系统运行时随意的添加或移除字段。这是一个惊人的效率提升，特别是在大型部署上。
+可扩展性
+Cassandra是纯粹意义上的水平扩展。为给集群添加更多容量，可以指向另一台电脑。你不必重启任何进程，改变应用查询，或手动迁移任何数据。
+多数据中心
+你可以调整你的节点布局来避免某一个数据中心起火，一个备用的数据中心将至少有每条记录的完全复制。
+一些使Cassandra提高竞争力的其他功能：
+范围查询
+如果你不喜欢全部的键值查询，则可以设置键的范围来查询。
