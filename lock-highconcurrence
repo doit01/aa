@@ -1,0 +1,254 @@
+以下是 **Java 高并发 JUC 锁相关面试题** 的详细解析，涵盖核心概念、代码实战和原理剖析，帮助你系统掌握面试要点：
+
+---
+
+### **一、基础概念题**
+#### 1. **ReentrantLock 与 synchronized 的区别**
+| **特性**               | **ReentrantLock**                     | **synchronized**                   |
+|------------------------|---------------------------------------|------------------------------------|
+| **实现方式**           | 显式锁（需手动加锁/释放）             | 隐式锁（自动加锁/释放）            |
+| **公平性**             | 支持公平锁和非公平锁                  | 仅非公平锁                         |
+| **可中断性**           | 支持中断等待锁的线程                  | 不支持                             |
+| **条件变量**           | 通过 `Condition` 实现多条件等待       | 仅单条件等待（`wait/notify`）      |
+| **性能**               | 高竞争下性能更优                      | 低竞争下更优（JVM 优化）           |
+
+**代码示例**：
+```java
+// ReentrantLock 使用
+ReentrantLock lock = new ReentrantLock(true); // 公平锁
+lock.lock();
+try {
+    // 临界区代码
+} finally {
+    lock.unlock();
+}
+
+// synchronized 使用
+public synchronized void method() {
+    // 临界区代码
+}
+```
+
+---
+
+#### 2. **ReentrantReadWriteLock 的读写锁分离机制**
+- **读锁（共享锁）**：多个线程可同时持有读锁。
+- **写锁（独占锁）**：写锁与读锁互斥，写锁之间也互斥。
+
+**适用场景**：读多写少的场景（如缓存系统）。
+
+**代码示例**：
+```java
+ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+Lock readLock = rwLock.readLock();
+Lock writeLock = rwLock.writeLock();
+
+// 写操作
+writeLock.lock();
+try {
+    // 修改共享数据
+} finally {
+    writeLock.unlock();
+}
+
+// 读操作
+readLock.lock();
+try {
+    // 读取共享数据
+} finally {
+    readLock.unlock();
+}
+```
+
+---
+
+#### 3. **StampedLock 的乐观读锁**
+- **乐观读**：不阻塞写操作，通过版本号（stamp）验证数据是否被修改。
+- **适用场景**：读多写极少，且允许偶尔读取脏数据的场景。
+
+**代码示例**：
+```java
+StampedLock stampedLock = new StampedLock();
+
+// 写操作
+long stamp = stampedLock.writeLock();
+try {
+    // 修改数据
+} finally {
+    stampedLock.unlockWrite(stamp);
+}
+
+// 乐观读
+long optimisticStamp = stampedLock.tryOptimisticRead();
+// 读取数据
+if (!stampedLock.validate(optimisticStamp)) {
+    // 数据被修改，升级为悲观读锁
+    long readStamp = stampedLock.readLock();
+    try {
+        // 重新读取数据
+    } finally {
+        stampedLock.unlockRead(readStamp);
+    }
+}
+```
+
+---
+
+### **二、进阶原理题**
+#### 1. **AQS（AbstractQueuedSynchronizer）的核心原理**
+- **状态管理**：通过 `volatile int state` 记录锁状态。
+- **FIFO 队列**：等待线程按 FIFO 顺序排队。
+- **独占模式 & 共享模式**：支持独占锁（如 ReentrantLock）和共享锁（如 Semaphore）。
+
+**关键方法**：
+- `getState()`：获取状态。
+- `setState(int newState)`：设置状态。
+- `compareAndSetState(int expect, int update)`：CAS 更新状态。
+
+---
+
+#### 2. **ReentrantLock 的公平锁实现**
+- **队列结构**：使用 `CLH队列` 管理等待线程。
+- **公平性保证**：新线程获取锁时，若队列中有等待线程，则必须排队。
+
+**源码关键点**：
+```java
+// NonfairSync（非公平锁）
+final boolean nonfairTryAcquire(int acquires) {
+    return compareAndSetState(0, 1); // 直接尝试 CAS 获取锁
+}
+
+// FairSync（公平锁）
+protected final boolean tryAcquire(int acquires) {
+    if (hasQueuedPredecessors()) // 检查队列是否有前驱节点
+        return false;
+    return super.tryAcquire(acquires);
+}
+```
+
+---
+
+#### 3. **锁的升级与降级**
+- **升级**：从读锁升级为写锁（ReentrantReadWriteLock 不支持，需手动释放读锁后获取写锁）。
+- **降级**：从写锁降级为读锁（允许，保证数据一致性）。
+
+**代码示例**：
+```java
+ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+Lock writeLock = lock.writeLock();
+Lock readLock = lock.readLock();
+
+writeLock.lock();
+try {
+    // 写操作完成后降级为读锁
+    readLock.lock();
+} finally {
+    writeLock.unlock(); // 释放写锁
+}
+try {
+    // 读操作
+} finally {
+    readLock.unlock();
+}
+```
+
+---
+
+### **三、性能优化与问题排查**
+#### 1. **锁竞争优化手段**
+- **减小锁粒度**：拆分锁（如 `ConcurrentHashMap` 的分段锁）。
+- **自旋锁**：避免线程上下文切换（`java.util.concurrent.atomic` 包中的原子类）。
+- **锁消除**：JIT 编译器在运行时消除不必要的锁（通过逃逸分析）。
+
+---
+
+#### 2. **死锁的四个必要条件**
+1. **互斥条件**：资源不可共享。
+2. **请求与保持**：持有资源的同时请求其他资源。
+3. **不可剥夺**：资源只能由持有者释放。
+4. **循环等待**：线程间形成环状等待链。
+
+**排查工具**：
+- `jstack`：生成线程堆栈，分析死锁。
+- `ThreadMXBean`：编程检测死锁。
+
+---
+
+### **四、实战场景题**
+#### 1. **如何用 ReentrantLock 实现一个线程安全的缓存**
+```java
+public class ThreadSafeCache<K, V> {
+    private final Map<K, V> cache = new HashMap<>();
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public V get(K key) {
+        lock.lock();
+        try {
+            return cache.get(key);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void put(K key, V value) {
+        lock.lock();
+        try {
+            cache.put(key, value);
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+```
+
+---
+
+#### 2. **使用 StampedLock 优化统计任务**
+```java
+public class Statistics {
+    private final StampedLock lock = new StampedLock();
+    private double sum = 0;
+
+    public void add(double value) {
+        long stamp = lock.writeLock();
+        try {
+            sum += value;
+        } finally {
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    public double getSum() {
+        long stamp = lock.tryOptimisticRead();
+        double currentSum = sum;
+        if (!lock.validate(stamp)) { // 验证是否被修改
+            stamp = lock.readLock();
+            try {
+                currentSum = sum;
+            } finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return currentSum;
+    }
+}
+```
+
+---
+
+### **五、高频面试题总结**
+1. **ReentrantLock 如何实现公平锁？**  
+   → 通过 `hasQueuedPredecessors()` 检查等待队列。
+
+2. **ReentrantReadWriteLock 的读锁和写锁如何互斥？**  
+   → 写锁获取时，所有读锁被阻塞；读锁之间不互斥。
+
+3. **StampedLock 的乐观读如何验证数据有效性？**  
+   → 通过 `validate(stamp)` 检查期间是否有写操作。
+
+4. **AQS 如何实现独占锁和共享锁？**  
+   → 独占锁重写 `tryAcquire/tryRelease`，共享锁重写 `tryAcquireShared/tryReleaseShared`。
+
+---
+
+掌握这些知识点，结合代码实战和原理分析，能系统应对 Java 并发锁相关的面试问题！
