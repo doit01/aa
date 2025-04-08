@@ -1,0 +1,19 @@
+​灰度发布如何实现？
+​步骤：
+在 Gateway 中根据请求头（如 version）路由到不同服务版本
+
+​配置中心：Spring Cloud Config + Bus 实现动态刷新
+
+分布式追踪
+11. ​Sleuth 如何生成 Trace ID？
+​流程：
+请求进入网关时生成唯一 Trace ID。
+通过 HTTP Header 传递至下游服务。
+Zipkin 收集并展示链路调用图。
+
+过滤器类型：
+​GatewayFilter：单个路由过滤器（如 AddRequestHeader）。
+​GlobalFilter：全局过滤器（如鉴权、限流）。
+
+​Feign 如何实现声明式服务调用？
+​原理：通过动态代理生成接口实现类，结合 Ribbon 实现负载均衡。
