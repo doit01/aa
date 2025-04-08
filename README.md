@@ -1,3 +1,13 @@
+thread local
+ThreadLocal表示线程的“局部变量”，它确保每个线程的ThreadLocal变量都是各自独立的；
+给每个方法增加一个context参数非常麻烦，而且有些时候，如果调用链有无法修改源码的第三方库，User对象就传不进去了。
+
+Java标准库提供了一个特殊的ThreadLocal，它可以在一个线程中传递同一个对象
+
+ThreadLocal适合在一个线程的处理流程中保持上下文（避免了同一参数在所有方法中传递）；
+
+使用ThreadLocal要用try ... finally结构，并在finally中清除
+https://liaoxuefeng.com/books/java/threading/thread-local/index.html
 CAP理论‌
 定义‌：分布式系统无法同时满足‌一致性（C）‌、‌可用性（A）‌、‌分区容错性（P）‌，需在CA/CP/AP中取舍，通常优先保证P‌。
 应用场景‌：
