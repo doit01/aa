@@ -1,3 +1,7 @@
+用synchronized修饰方法可以把整个方法变为同步代码块，synchronized方法加锁对象是this；
+通过合理的设计和数据封装可以让一个类变为“线程安全”；一个类没有特殊说明，默认不是thread-safe；
+
+
 thread local
 ThreadLocal表示线程的“局部变量”，它确保每个线程的ThreadLocal变量都是各自独立的；
 给每个方法增加一个context参数非常麻烦，而且有些时候，如果调用链有无法修改源码的第三方库，User对象就传不进去了。
