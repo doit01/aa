@@ -249,6 +249,45 @@ public class Statistics {
 4. **AQS 如何实现独占锁和共享锁？**  
    → 独占锁重写 `tryAcquire/tryRelease`，共享锁重写 `tryAcquireShared/tryReleaseShared`。
 
----
+5 不可重入：StampedLock 是不可重入锁，不能在一个线程中反复获取同一个锁
 
-掌握这些知识点，结合代码实战和原理分析，能系统应对 Java 并发锁相关的面试问题！
+6 synchronized是可重入锁
+
+如果我们深入分析ReadWriteLock，会发现它有个潜在的问题：如果有线程正在读，写线程需要等待读线程释放锁后才能获取写锁，即读的过程中不允许写，这是一种悲观的读锁。
+https://liaoxuefeng.com/books/java/threading/synchronize/stamped-lock/index.html
+可重入锁（Reentrant Lock）是由java.util.concurrent.locks包下的ReentrantLock类提供的。可重入锁是一种递归锁，
+这意味着同一个线程可以多次获得同一个锁。这对于编写递归方法或在同一个线程中多次进入同一个同步块是非常有用的
+import java.util.concurrent.locks.ReentrantLock;
+ 
+public class ReentrantLockExample {
+    private final ReentrantLock lock = new ReentrantLock();
+    private int count = 0;
+ 
+    public void recursiveMethod() {
+        lock.lock(); // 获取锁
+        try {
+            // 执行一些操作
+            System.out.println("Lock acquired by " + Thread.currentThread().getName());
+            count++;
+            System.out.println("Count is now " + count);
+            if (count < 5) {
+                recursiveMethod(); // 递归调用自身
+            } else {
+                System.out.println("Reached max count.");
+            }
+        } finally {
+            lock.unlock(); // 释放锁
+            System.out.println("Lock released by " + Thread.currentThread().getName());
+        }
+    }
+ 
+    public static void main(String[] args) {
+        ReentrantLockExample example = new ReentrantLockExample();
+        example.recursiveMethod(); // 开始递归调用
+    }
+}
+
+
+使用ReadWriteLock可以解决这个问题，它保证：
+只允许一个线程写入（其他线程既不能写入也不能读取）；
+没有写入时，多个线程允许同时读（提高性能）
