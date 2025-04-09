@@ -340,3 +340,137 @@ m := map[string]int{
                 fmt.Println(country, "首都是", countryCapitalMap [ country ])
         }
         /*删除元素*/ delete(countryCapitalMap, "France")
+
+
+类型转换 
+var a int = 10
+var b float64 = float64(a)
+
+ 字符串类型转换
+
+将一个字符串转换成另一个类型，可以使用以下语法：
+var str string = "10"
+var num int
+num, _ = strconv.Atoi(str)
+
+以上代码将字符串变量 str 转换为整型变量 num。
+注意，strconv.Atoi 函数返回两个值，第一个是转换后的整型值，第二个是可能发生的错误，我们可以使用空白标识符 _ 来忽略这个错误
+
+实例将字符串转换为浮点数：
+import (
+    "fmt"
+    "strconv"
+)
+
+func main() {
+    str := "3.14"
+    num, err := strconv.ParseFloat(str, 64)
+    if err != nil {
+        fmt.Println("转换错误:", err)
+    } else {
+        fmt.Printf("字符串 '%s' 转为浮点型为：%f\n", str, num)
+    }
+}
+
+接口
+接口类型转换有两种情况：类型断言和类型转换
+func main() {
+    var i interface{} = "Hello, World"
+    //类型断言
+    str, ok := i.(string)
+    if ok {
+        fmt.Printf("'%s' is a string\n", str)
+    } else {
+        fmt.Println("conversion failed")
+    }
+}
+
+以上实例中，我们定义了一个接口类型变量 i，并将它赋值为字符串 "Hello, World"。然后，我们使用类型断言将 i 转换为字符串类型，并将转换后的值赋值给变量 str。最后，我们使用 ok 变量检查类型转换是否成功，如果成功，我们打印转换后的字符串；否则，我们打印转换失败的消息
+
+
+// 定义一个接口 Writer
+type Writer interface {
+    Write([]byte) (int, error)
+}
+
+// 实现 Writer 接口的结构体 StringWriter
+type StringWriter struct {
+    str string
+}
+
+// 实现 Write 方法
+func (sw *StringWriter) Write(data []byte) (int, error) {
+    sw.str += string(data)
+    return len(data), nil
+}
+
+func main() {
+    // 创建一个 StringWriter 实例并赋值给 Writer 接口变量
+    var w Writer = &StringWriter{}
+   
+    // 将 Writer 接口类型转换为 StringWriter 类型
+    sw := w.(*StringWriter)
+   
+    // 修改 StringWriter 的字段
+    sw.str = "Hello, World"
+   
+    // 打印 StringWriter 的字段值
+    fmt.Println(sw.str)
+}
+
+接口（interface）是 Go 语言中的一种类型，用于定义行为的集合，它通过描述类型必须实现的方法，规定了类型的行为契约。
+
+隐式实现：
+
+    Go 中没有关键字显式声明某个类型实现了某个接口。
+    只要一个类型实现了接口要求的所有方法，该类型就自动被认为实现了该接口。
+
+接口类型变量：
+
+    接口变量可以存储实现该接口的任意值。
+    接口变量实际上包含了两个部分：
+        动态类型：存储实际的值类型。
+        动态值：存储具体的值。
+
+零值接口：
+
+    接口的零值是 nil。
+    一个未初始化的接口变量其值为 nil，且不包含任何动态类型或值。
+
+空接口：
+
+    定义为 interface{}，可以表示任何类型。
+接口的常见用法
+
+    多态：不同类型实现同一接口，实现多态行为。
+    解耦：通过接口定义依赖关系，降低模块之间的耦合。
+    泛化：使用空接口 interface{} 表示任意类型
+
+import (
+        "fmt"
+        "math"
+)
+
+// 定义接口
+type Shape interface {
+        Area() float64
+        Perimeter() float64
+}
+
+// 定义一个结构体
+type Circle struct {
+        Radius float64
+}
+// Circle 实现 Shape 接口
+func (c Circle) Area() float64 {
+        return math.Pi * c.Radius * c.Radius
+}
+func (c Circle) Perimeter() float64 {
+        return 2 * math.Pi * c.Radius
+}
+func main() {
+        c := Circle{Radius: 5}
+        var s Shape = c // 接口变量可以存储实现了接口的类型
+        fmt.Println("Area:", s.Area())
+        fmt.Println("Perimeter:", s.Perimeter())
+}
