@@ -141,3 +141,202 @@ balance := [5]float32{1:2.0,3:7.0}
 数组元素可以通过索引（位置）来读取。格式为数组名后加中括号，中括号中为索引的值。例如：
 
 var salary float32 = balance[9]
+
+
+
+type Books struct {
+   title string
+   author string
+   subject string
+   book_id int
+}
+func main() {
+
+    // 创建一个新的结构体
+    fmt.Println(Books{"Go 语言", "www.runoob.com", "Go 语言教程", 6495407})
+
+    // 也可以使用 key => value 格式
+    fmt.Println(Books{title: "Go 语言", author: "www.runoob.com", subject: "Go 语言教程", book_id: 6495407})
+
+    // 忽略的字段为 0 或 空
+   fmt.Println(Books{title: "Go 语言", author: "www.runoob.com"})
+}
+
+动态数组切片不需要说明长度，长度是不固定的，可以追加元素，在追加时可能使切片的容量增大
+切片初始化
+s :=[] int {1,2,3 } 
+ make() 函数来创建切片:
+var slice1 []type = make([]type, len)
+也可以指定容量，其中 capacity 为可选参数， len 是数组的长度并且也是切片的初始长度
+make([]T, length, capacity)
+也可以简写为
+slice1 := make([]type, len)
+切片是可索引的，并且可以由 len() 方法获取长度。
+切片提供了计算容量的方法 cap() 可以测量切片最长可以达到多少。
+func main() {
+   var numbers = make([]int,3,5)
+   printSlice(numbers)
+}
+
+func printSlice(x []int){
+   fmt.Printf("len=%d cap=%d slice=%v\n",len(x),cap(x),x)
+}
+
+import "fmt"
+
+func main() {
+   /* 创建切片 */
+   numbers := []int{0,1,2,3,4,5,6,7,8}  
+   printSlice(numbers)
+
+   /* 打印原始切片 */
+   fmt.Println("numbers ==", numbers)
+
+   /* 打印子切片从索引1(包含) 到索引4(不包含)*/
+   fmt.Println("numbers[1:4] ==", numbers[1:4])
+
+   /* 默认下限为 0*/
+   fmt.Println("numbers[:3] ==", numbers[:3])
+
+   /* 默认上限为 len(s)*/
+   fmt.Println("numbers[4:] ==", numbers[4:])
+
+   numbers1 := make([]int,0,5)
+   printSlice(numbers1)
+
+   /* 打印子切片从索引  0(包含) 到索引 2(不包含) */
+   number2 := numbers[:2]
+   printSlice(number2)
+
+   /* 打印子切片从索引 2(包含) 到索引 5(不包含) */
+   number3 := numbers[2:5]
+   printSlice(number3)
+
+}
+
+func printSlice(x []int){
+   fmt.Printf("len=%d cap=%d slice=%v\n",len(x),cap(x),x)
+}
+append() 和 copy() 函数
+
+如果想增加切片的容量，我们必须创建一个新的更大的切片并把原分片的内容都拷贝过来。
+下面的代码描述了从拷贝切片的 copy 方法和向切片追加新元素的 append 方法
+
+for 循环的 range 格式可以对 slice、map、数组、字符串等进行迭代循环。格式如下：
+package main
+import "fmt"
+// 声明一个包含 2 的幂次方的切片
+var pow = []int{1, 2, 4, 8, 16, 32, 64, 128}
+
+func main() {
+   // 遍历 pow 切片，i 是索引，v 是值
+   for i, v := range pow {
+      // 打印 2 的 i 次方等于 v
+      fmt.Printf("2**%d = %d\n", i, v)
+   }
+}
+
+ range 迭代字符串时，返回每个字符的索引和 Unicode 代码点（rune）。
+实例
+package main
+import "fmt"
+func main() {
+    for i, c := range "hello" {
+        fmt.Printf("index: %d, char: %c\n", i, c)
+    }
+}
+
+ for 循环的 range 格式可以省略 key 和 value，如下实例：
+实例
+package main
+
+import "fmt"
+
+func main() {
+    // 创建一个空的 map，key 是 int 类型，value 是 float32 类型
+    map1 := make(map[int]float32)
+   
+    // 向 map1 中添加 key-value 对
+    map1[1] = 1.0
+    map1[2] = 2.0
+    map1[3] = 3.0
+    map1[4] = 4.0
+   
+    // 遍历 map1，读取 key 和 value
+    for key, value := range map1 {
+        // 打印 key 和 value
+        fmt.Printf("key is: %d - value is: %f\n", key, value)
+    }
+
+    // 遍历 map1，只读取 key
+    for key := range map1 {
+        // 打印 key
+        fmt.Printf("key is: %d\n", key)
+    }
+
+    // 遍历 map1，只读取 value
+    for _, value := range map1 {
+        // 打印 value
+        fmt.Printf("value is: %f\n", value)
+    }
+}
+通道（Channel）
+
+range 遍历从通道接收的值，直到通道关闭。
+实例
+package main
+
+import "fmt"
+
+func main() {
+    ch := make(chan int, 2)
+    ch <- 1
+    ch <- 2
+    close(ch)
+   
+    for v := range ch {
+        fmt.Println(v)
+    }
+}
+
+忽略值
+
+在遍历时可以使用 _ 来忽略索引或值。
+实例
+package main
+
+import "fmt"
+
+func main() {
+    nums := []int{2, 3, 4}
+   
+    // 忽略索引
+    for _, num := range nums {
+        fmt.Println("value:", num)
+    }
+   
+    // 忽略值
+    for i := range nums {
+        fmt.Println("index:", i)
+    }
+}
+
+Map 是引用类型，如果将一个 Map 传递给一个函数或赋值给另一个变量，它们都指向同一个底层数据结构，因此对 Map 的修改会影响到所有引用它的变
+
+// 创建一个初始容量为 10 的 Map
+m := make(map[string]int, 10)
+// 使用字面量创建 Map
+m := map[string]int{
+    "apple": 1,
+    "banana": 2,
+    "orange": 3,
+}
+
+ /* 创建map */
+        countryCapitalMap := map[string]string{"France": "Paris", "Italy": "Rome", "Japan": "Tokyo", "India": "New delhi"}
+        fmt.Println("原始地图")
+        /* 打印地图 */
+        for country := range countryCapitalMap {
+                fmt.Println(country, "首都是", countryCapitalMap [ country ])
+        }
+        /*删除元素*/ delete(countryCapitalMap, "France")
