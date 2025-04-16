@@ -1,3 +1,33 @@
+类型选择（type switch）
+
+type switch 是 Go 中的语法结构，用于根据接口变量的具体类型执行不同的逻辑。
+实例
+package main
+
+import "fmt"
+
+func printType(val interface{}) {
+        switch v := val.(type) {
+        case int:
+                fmt.Println("Integer:", v)
+        case string:
+                fmt.Println("String:", v)
+        case float64:
+                fmt.Println("Float:", v)
+        default:
+                fmt.Println("Unknown type")
+        }
+}
+
+func main() {
+        printType(42)
+        printType("hello")
+        printType(3.14)
+        printType([]int{1, 2, 3})
+}
+
+接口可以通过嵌套组合，实现更复杂的行为描述。
+
 像 int、float、bool 和 string 这些基本类型都属于值类型，使用这些类型的变量直接指向存在内存中的值
 当使用等号 = 将一个变量的值赋值给另一个变量时，如：j = i，实际上是在内存中将 i 的值进行了拷贝
 改变i不影响j
