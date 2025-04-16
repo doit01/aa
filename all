@@ -1,3 +1,18 @@
+线程如何结束：
+1正常执行完成
+2未捕获异常终止‌
+线程运行过程中抛出未处理的 ‌Exception 或 Error‌（如空指针、内存溢出等），导致线程非正常终止‌
+3 中断信号触发终止‌ 通过调用 interrupt() 方法设置中断标志，线程通过 ‌主动检查中断状态‌ 或 ‌响应中断异常‌ 退出‌
+4 强制终止（已废弃）‌
+通过 stop() 方法强制终止线程，但此方法已被废弃，可能导致 ‌数据不一致‌、‌资源未释放‌ 等严重问题‌12。
+
+最佳实践建议‌
+    ‌优先使用中断机制‌：通过 interrupt() 和标志位协作，实现优雅终止‌13。
+    ‌避免废弃方法‌：禁止使用 stop()、suspend() 等不安全方法‌12。
+    ‌异常兜底处理‌：在 run() 方法顶层捕获 Throwable，防止意外崩溃‌7。
+    ‌资源释放保障‌：在 finally 块中关闭文件、数据库连接等资源‌5
+
+
 jdk17 default gc is G1 
 java -XX:+PrintCommandLineFlags -version
 -XX:InitialHeapSize=16777216 -XX:MaxHeapSize=268435456 -XX:MinHeapSize=6815736 -XX:+PrintCommandLineFlags -XX:ReservedCodeCacheSize=251658240 -XX:+SegmentedCodeCache -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:+UseSerialGC 
