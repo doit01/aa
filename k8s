@@ -1,3 +1,9 @@
+场景‌ 	‌Flannel 职责‌ 	‌kube-proxy 职责‌
+同节点 Pod 通信 	通过 cni0 网桥直接转发 	不参与
+跨节点 Pod 通信 	封装流量并维护路由规则 	不参与
+访问 ClusterIP Service 	确保 Pod 到 Service IP 网络可达 	将 Service IP 映射到 Pod IP 并负载均衡
+外部访问 NodePort 	不参与 	监听节点端口并转发到 Service 后端 Pod
+
 storage class's provisioner  { longhore,cephFs}
 longhorn 专门为k8s 设计的块存储。
 
