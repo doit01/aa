@@ -1,3 +1,124 @@
+
+Tauri是一个多语言通用工具包，用于构建跨平台的桌面应用程序。它结合了Web前端和系统后端技术，允许开发人员使用Rust和HTML的组合来创建应用程序。Tauri的主要作用包括‌：
+    ‌跨平台支持‌：Tauri允许开发人员使用Web技术（如HTML、CSS、JavaScript）来开发桌面应用程序，同时支持多个操作系统，如Windows、macOS和Linux。
+
+
+Vue 生态‌
+Element UI‌：Vue 2.0 的桌面端组件库，适合快速构建企业级应用‌。
+Vant‌：支持 Vue 及小程序的移动端组件库，提供轻量级交互组件‌。
+
+Lodash‌：高性能 JavaScript 工具库，支持数组、对象等复杂操作‌。
+Ramda‌：函数式编程工具库，强调数据不可变性与函数组合‌。
+qs‌：轻量级 URL 参数解析与序列化工具‌。
+数据处理‌
+Day.js‌：轻量级日期处理库，API 与 Moment.js 兼容‌。
+Axios‌：基于 Promise 的 HTTP 请求库，支持浏览器与 Node.js‌。
+Big.js‌：高精度数学运算库，适用于金融等场景‌。
+动画库‌
+Animate.css‌：CSS3 动画库，提供预定义动画效果‌。
+Anime.js‌：轻量级 JavaScript 动画引擎，支持复杂时间线控制‌。
+交互优化‌
+FastClick‌：消除移动端点击 300ms 延迟的轻量库‌。
+Waves‌：实现点击波纹效果的 CSS/JS 库‌。
+Chart.js‌：轻量级图表库，支持线图、饼图等常见类型‌。
+Nodemon‌：自动重启 Node.js 服务的开发辅助工具‌。
+UUID‌：生成唯一标识符的标准库‌。
+File-saver‌：客户端文件下载与保存解决方案‌。
+js-xlsx‌：Excel 文件解析与生成库‌。
+选型建议
+企业级中后台‌：Ant Design + Axios + Lodash‌
+移动端应用‌：Vant + FastClick + Day.js‌
+数据可视化项目‌：Chart.js + Anime.js + NX‌
+Tern.js‌是一个用于JavaScript的代码分析引擎，主要作用是提供智能的代码补全、类型推断、文档查询等功能，旨在提升开发者的编码效率。Tern.js通过在项目中构建一个类型推断的数据库，帮助开发者获得更准确的代码提示和自动补全
+subscriptions-transport-ws 是一个用于在 WebSocket 协议上实现 GraphQL 订阅的库。它允许客户端订阅来自服务器的实时数据更新，这对于构建实时功能的应用程序非常有用，例如聊天应用、实时通知系统、股市数据流等。
+作用    实时数据更新：通过 WebSocket 连接，客户端可以实时接收来自服务器的数据更新，而不需要轮询服务器。
+
+splitpanes   
+在前端开发中，使用分割窗格（split panes）是一种常见的需求，特别是在构建需要同时展示多个面板或视图的应用时。分割窗格允许用户通过拖动分隔线来调整各个面板的大小，从而实现灵活的布局。在Web开发中，有多种库和框架可以帮助实现这一功能，例如使用HTML和CSS原生方法、Bootstrap、或者专门的JavaScript库如Split.js
+
+quicktype-core‌是一个用于从JSON、JSON Schema、TypeScript和GraphQL查询中生成强类型模型和序列化器的工具。它支持多种编程语言，包括C#、Go、Swift、C++、Java和TypeScript等，使得在多种编程语言中以类型安全的方式处理JSON变得轻而易举‌
+
+qs
+序列化对象到查询字符串‌：使用qs.stringify方法可以将JavaScript对象转换为查询字符串。通过第二个参数，可以控制数组如何被序列化为查询字符串‌1。
+‌解析查询字符串到对象‌：使用qs.parse方法可以将查询字符串解析为JavaScript对象。通过第二个参数，可以控制解析行为，例如如何处理点号在键名中，或者限制数组的最大长度等‌。
+‌处理嵌套对象和数组‌：qs库支持深度嵌套对象的解析和序列化，能够处理复杂的查询参数‌。
+
+RxJS的一些基本用法，包括创建Observable、订阅、使用操作符处理数据流以及使用Subject进行多播
+RxJS（Reactive Extensions for JavaScript）是一个使用可观测数据流进行异步编程和基于事件的编程的库。它提供了丰富的操作符来处理这些数据流，使得编写复杂和响应式的JavaScript程序变得更加简单和高效。
+import { of } from 'rxjs';
+import { map, filter } from 'rxjs/operators';
+ // 创建一个Observable，发出数字1,2,3,4,5
+const source = of(1, 2, 3, 4, 5);
+ // 使用map操作符将每个值乘以2，然后使用filter操作符过滤出偶数
+const example = source.pipe(
+  map(val => val * 2), // 将每个值乘以2
+  filter(val => val % 2 === 0) // 过滤出偶数
+);
+ // 订阅这个Observable并打印结果
+example.subscribe(val => console.log(val)); // 输出: 2, 4, 6, 8, 10 (乘以2后为偶数的结果)
+
+
+import { Subject } from 'rxjs';
+import { take } from 'rxjs/operators'; // 需要导入take操作符来演示如何停止发射数据流
+ const subject = new Subject<number>(); // 创建一个Subject，可以广播值给多个观察者
+subject.subscribe({
+  next: (v) => console.log(`observerA: ${v}`)
+});
+subject.subscribe({
+  next: (v) => console.log(`observerB: ${v}`)
+});
+ // 向所有观察者广播值1,2,3,然后停止广播（通过调用complete或者使用take操作符）
+subject.next(1);
+subject.next(2);
+subject.next(3);
+subject.complete(); // 或者使用 subject.pipe(take(3)).subscribe(...) 来自动完成订阅并在发出3个值后停止发射。
+
+MiniSearch是一个轻量级的JavaScript全文搜索引擎库，适用于浏览器和Node.js环境。它的主要作用是帮助开发者快速实现全文搜索功能，支持自定义字段、模糊搜索和前缀搜索等功能，非常适合小型项目或需要快速集成搜索功能的应用
+
+markdown-it是一款功能强大的Markdown解析器，主要用于将Markdown文本转换为HTML格式。它支持丰富的Markdown语法，包括标题、段落、列表、链接、图片等基本语法，以及表格、脚注、任务列表等扩展语法。通过配置和插件系统，markdown-it可以满足不同的解析需求，提供灵活的文档编辑体验
+
+jsonpath-plus 是一个用于在JSON数据中导航和查询的库，它提供了一个类似于XPath的语法来提取数据。这个库扩展了标准的JSONPath语法，增加了对一些额外特性的支持，例如数组索引、自定义函数等。这对于在前端项目中处理复杂的JSON结构非常有用：
+    数据提取：从复杂的JSON结构中提取特定数据。
+    条件查询：支持使用条件表达式来过滤和选择数据。
+    数组操作：可以处理数组中的元素，例如选择特定索引的元素或过滤数组。
+
+const jsonpath = require('jsonpath-plus');
+const data = { /* JSON数据 */ };
+const titles = jsonpath({ path: '$.store.book[*].title', json: data });
+console.log(titles); // 输出: ["Moby Dick", "The Lord of the Rings"]
+
+shopify/lang-jsonc 是 Shopify 开发的一个库，它主要用于在 Shopify 主题和应用程序中解析和格式化 JSONC 代码。JSONC 是一种 JSON 超集，它在标准 JSON 的基础上添加了一些额外的特性，比如注释和尾随逗号。这使得 JSONC 在配置文件和设置中非常有用，特别是在 Shopify 主题和应用程序的开发中
+
+unhead/vue 作用和例子
+
+unhead 是一个 Vue 插件，主要用于在 Vue 3 应用程序中管理页面头部（head）的元数据，比如 <title>、<meta> 标签等。这对于改善搜索引擎优化（SEO）、控制浏览器标签页的标题和图标等非常有用。
+作用 动态更新头部信息：允许你在 Vue 组件中动态地添加、修改或删除 <head> 中的内容，例如改变页面标题或添加新的 meta 标签。
+    组件驱动：通过 Vue 组件的方式管理头部信息，使得结构清晰、易于维护。
+    服务器端渲染（SSR）支持：对于使用 Nuxt.js 或其他支持 SSR 的 Vue 框架，unhead 能够无缝工作，确保头部信息在服务器端和客户端都能正确渲染
+
+Esprima 是一个用于解析 JavaScript 代码的库,它可以将源代码转换为抽象语法树(AST)
+
+urql/core 的作用
+    查询和变更（Queries and Mutations）：允许你执行 GraphQL 查询和变更（mutations）。
+    缓存管理：自动管理缓存，包括查询结果的缓存和更新。
+    订阅（Subscriptions）：支持 GraphQL 订阅，可以实时接收数据更新。
+    批处理请求：自动批处理多个查询和变更以提高性能。
+    灵活的数据获取：可以通过钩子（hooks）或直接使用 API 在任何 React 组件中获取数据。
+
+
+
+process
+环境变量管理‌：process.env可以用来获取和设置环境变量。这在开发、测试和生产环境中非常有用，可以根据不同的环境变量来调整应用的行为。例如，可以通过设置NODE_ENV来区分开发环境和生产环境，从而应用不同的配置‌12。
+‌命令行参数获取‌：process.argv用于获取命令行参数，这对于调试和启动脚本时传递参数非常方便‌1。
+‌特殊参数获取‌：process.execArgv用于获取启动Node.js进程时使用的特殊参数，这对于调试和优化应用非常有帮助‌1。
+‌当前工作目录获取‌：process.cwd()返回当前工作目录的路径，这在处理文件路径时非常有用‌1。
+‌异步编程‌：process.nextTick(fn)用于将函数fn放入事件循环的下一个tick中执行，这对于处理异步操作非常高效‌
+
+Paho MQTT 是一个开源的客户端库，用于实现 MQTT 协议。MQTT（消息队列遥测传输）是一种轻量级的发布/订阅消息传输协议，广泛用于物联网（IoT）和移动应用中，因为它允许设备在网络上以最小的带宽和资源消耗交换消息
+
+
+
+
 Lossless-JSON的主要作用是解析和字符串化JSON数据时，不会丢失数字信息，特别是处理大数字时能够保持精度。‌
 作用
 
