@@ -1,3 +1,74 @@
+lodash
+var _ = require('lodash');
+循环 //lodash的times方法
+    _.times(5,function(a){
+        console.log(a);
+    });
+2、深层查找属性值
+ var ownerArr = [{
+        "owner": "Colin",
+        "pets": [{"name": "dog1"}, {"name": "dog2"}]
+    }, {
+        "owner": "John",
+        "pets": [{"name": "dog3"}, {"name": "dog4"}]
+    }];
+
+
+ var lodashMap = _.map(ownerArr, 'pets[0].name');
+    console.log('------- lodashMap -------');
+    console.log(lodashMap);
+3、深克隆对象
+ var objB = _.cloneDeep(objA);
+5、扩展对象
+  Object.prototype.extend = function(obj) {
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {    //判断被扩展的对象有没有某个属性，
+                this[i] = obj[i];
+            }
+        }
+    };
+
+    var objA = {"name": "戈德斯文", "car": "宝马"};
+    var objB = {"name": "柴硕", "loveEat": true};
+
+    objA.extend(objB);
+    console.log(objA); 
+
+    console.log(_.assign(objA, objB));
+
+7、判断对象中是否含有某元素
+ var smartPerson = {
+            'name': '戈德斯文',
+            'gender': 'male'
+        },
+        smartTeam = ["戈德斯文", "杨海月", "柴硕", "师贝贝"];
+
+
+    console.log(_.includes(smartPerson, '戈德斯文'));
+    console.log(_.includes(smartTeam, '杨海月'));
+    console.log(_.includes(smartTeam, '杨海月',2));
+
+zod 验证 类型约束
+import { z } from 'zod';
+
+const FormSchema = z.object({
+  name: z.string().min(3),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+const formData = { name: 'John Doe', email: 'john@example.com', password: 'password123' };
+try {
+  const validatedForm = FormSchema.parse(formData);
+  console.log('表单验证通过:', validatedForm);
+} catch (error) {
+  console.error('表单验证失败:', error);
+}
+
+io-ts 是一个用于运行时类型系统，主要用于输入输出（IO）数据的解码和编码，io-ts 依赖于 fp-ts 库，如果版本不匹配，可能会导致编译错误或运行时错误。
+
+
+
 接口（interface）与类型别名（type）的区别‌
 
     ‌接口‌：定义对象结构，支持继承（extends）和声明合并（同名接口自动合并）‌13。
