@@ -1,3 +1,41 @@
+Lossless-JSON的主要作用是解析和字符串化JSON数据时，不会丢失数字信息，特别是处理大数字时能够保持精度。‌
+作用
+
+Lossless-JSON的主要作用是解决原生JSON.parse和JSON.stringify在处理大数字时可能出现的精度损失问题。它能够精确地解析和字符串化大数字，保证在处理JSON数据时不会丢失任何数字信息。Lossless-JSON通过将数值存储为字符串的轻量级类LosslessNumber，避免了信息丢失
+yargs-parser‌是一个用于解析命令行参数的库，主要用于将命令行参数解析成一个对象，方便在Node.js应用程序中使用这些参数。
+
+Wonka 的应用场景
+
+Wonka 适用于多种场景，特别是在需要处理异步数据流或需要对数据进行复杂转换的场景中表现尤为出色：
+
+    ‌前端开发‌：在现代前端框架中，如React或Vue，Wonka 可以用于处理复杂的用户交互事件流，如表单输入、按钮点击等。
+    ‌后端开发‌：在Node.js环境中，Wonka 可以用于处理 HTTP 请求流、数据库查询结果流等。
+    ‌数据处理‌：在数据科学或机器学习领域，Wonka 可以用于处理大规模数据集，进行数据清洗、转换和聚合‌1。
+import { stream } from 'wonka';
+
+// 创建一个简单的流，模拟用户点击事件
+const clickStream = stream(() => {
+  let count = 0;
+  return {
+    subscribe(observer) {
+      const interval = setInterval(() => {
+        observer.next({ type: 'click', count });
+        count++;
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  };
+});
+
+
+
+
+vueuse/core 是 Vue 3 生态系统中的一个库，它提供了一系列实用的 Composition API 函数，旨在简化 Vue 开发中的常见任务。vueuse/core 库由 Antfu 创建，并被广泛认为是 Vue 3 中最受欢迎的实用函数库之一。
+主要作用
+
+    简化状态管理：通过提供诸如 useToggle, useLocalStorage, useMouse 等函数，简化了状态管理、事件处理和副作用管理等。
+
+    提高代码可读性和复用性：通过提供一系列封装好的函数，开发者可以更容易地编写可读性和可维护性高的代码。
 lodash
 var _ = require('lodash');
 循环 //lodash的times方法
