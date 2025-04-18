@@ -1,3 +1,243 @@
+以下是一份针对 Go 语言开发的**高频面试题清单**，涵盖基础语法、并发模型、内存管理、设计模式等核心知识点，并附详细解答思路。适用于初级到高级岗位面试准备。
+
+---
+
+### **一、Go 基础**
+#### 1. **切片（Slice）和数组（Array）的区别**
+- **答案**：  
+  数组是固定长度的值类型，长度是类型的一部分（如 `[5]int` 和 `[3]int` 类型不同）。  
+  切片是引用类型，动态长度，底层指向数组，由 `ptr`、`len`、`cap` 组成。  
+  **示例**：  
+  ```go
+  var arr [3]int       // 数组
+  slice := []int{1,2}  // 切片
+  ```
+
+#### 2. **`defer` 的执行顺序**
+- **答案**：  
+  `defer` 按后进先出（LIFO）顺序执行，但参数（如函数调用、变量值）在声明时确定。  
+  **示例**：  
+  ```go
+  func main() {
+      a := 1
+      defer fmt.Println(a)   // 输出 1（a 的值在 defer 时确定）
+      a++
+  }
+  ```
+
+#### 3. **接口的动态类型和动态值**
+- **答案**：  
+  接口变量存储两个信息：动态类型（实际类型）和动态值（值的副本或指针）。  
+  **示例**：  
+  ```go
+  var i interface{} = "hello"
+  fmt.Println(i.(type)) // 输出 "string"
+  ```
+
+#### 4. **`new` 和 `make` 的区别**
+- **答案**：  
+  `new(T)` 分配类型 `T` 的零值内存，返回指针 `*T`。  
+  `make(T, args)` 用于创建切片、映射、通道，并初始化内部结构，返回引用类型 `T`。  
+  **示例**：  
+  ```go
+  p := new(int)     // *int, 值为 0
+  s := make([]int, 5) // 初始化长度为 5 的切片
+  ```
+
+---
+
+### **二、并发与 Channel**
+#### 1. **Goroutine 和线程的区别**
+- **答案**：  
+  Goroutine 是轻量级用户态线程，由 Go 调度器管理，切换成本低（MB 级栈，可动态扩缩）。  
+  线程是 OS 调度的实体，切换成本高（KB 级栈，依赖内核）。
+
+#### 2. **Channel 的阻塞和非阻塞操作**
+- **答案**：  
+  - 默认的 `ch <- x` 是阻塞写，通道满时挂起。  
+  - `select` + `default` 实现非阻塞：  
+    ```go
+    select {
+    case ch <- x:
+    default:
+        // 非阻塞发送失败
+    }
+    ```
+
+#### 3. **`sync.WaitGroup` 的使用**
+- **答案**：  
+  通过 `Add(n)` 添加计数，`Done()` 减少计数（等价于 `Add(-1)`），`Wait()` 阻塞直到计数为 0。  
+  **示例**：  
+  ```go
+  var wg sync.WaitGroup
+  for i := 0; i < 5; i++ {
+      wg.Add(1)
+      go func() {
+          defer wg.Done()
+          // 任务逻辑
+      }()
+  }
+  wg.Wait()
+  ```
+
+#### 4. **死锁的常见场景**
+- **答案**：  
+  - Channel 未关闭且无数据，导致接收阻塞。  
+  - 多个 Goroutine 互相等待对方释放资源。  
+  **示例**：  
+  ```go
+  ch := make(chan int)
+  <-ch // 阻塞（无发送方）
+  ```
+
+---
+
+### **三、内存管理与 GC**
+#### 1. **Go 的垃圾回收机制（GC）**
+- **答案**：  
+  Go 使用**三色标记清除算法**（并发标记，STW 清除），从根对象（栈、全局变量）出发，标记可达对象，回收不可达对象。  
+  **优化点**：Go 1.5+ 实现并发 GC，减少 STW 时间。
+
+#### 2. **内存逃逸分析**
+- **答案**：  
+  编译器通过逃逸分析决定变量分配在栈还是堆。  
+  **触发逃逸的常见场景**：  
+  - 返回局部变量的指针。  
+  - 变量大小不确定或过大。  
+  **示例**：  
+  ```go
+  func foo() *int {
+      x := 10 // 逃逸到堆（返回指针）
+      return &x
+  }
+  ```
+
+#### 3. **如何减少 GC 压力？**
+- **答案**：  
+  - 复用对象（如 `sync.Pool`）。  
+  - 避免频繁创建临时对象（如字符串拼接用 `strings.Builder`）。  
+  - 减少指针使用（降低扫描开销）。
+
+---
+
+### **四、依赖注入与设计模式**
+#### 1. **依赖注入的常见实现方式（Go）**
+- **答案**：  
+  - 构造函数注入（推荐）。  
+  - 接口注入（解耦依赖）。  
+  - 使用框架（如 `wire`、`dig`）。  
+  **示例**：  
+  ```go
+  type Service struct {
+      repo Repository
+  }
+  func NewService(repo Repository) *Service {
+      return &Service{repo}
+  }
+  ```
+
+#### 2. **工厂模式 vs 单例模式**
+- **答案**：  
+  - **工厂模式**：根据输入动态创建对象，隐藏实例化细节。  
+  - **单例模式**：确保全局只有一个实例（如 `sync.Once`）。  
+  **示例**：  
+  ```go
+  var instance *Singleton
+  func GetInstance() *Singleton {
+      once.Do(func() { instance = &Singleton{} })
+      return instance
+  }
+  ```
+
+---
+
+### **五、系统设计与性能优化**
+#### 1. **如何实现一个并发安全的队列？**
+- **答案**：  
+  - 使用 `channel`（天然并发安全）。  
+  - 或用 `sync.Mutex` 保护切片/链表。  
+  **示例**：  
+  ```go
+  type SafeQueue struct {
+      mu    sync.Mutex
+      items []int
+  }
+  func (q *SafeQueue) Push(item int) {
+      q.mu.Lock()
+      defer q.mu.Unlock()
+      q.items = append(q.items, item)
+  }
+  ```
+
+#### 2. **如何定位内存泄漏？**
+- **答案**：  
+  - 使用 `pprof` 分析堆内存（`runtime.ReadMemStats`）。  
+  - 检查未释放的引用（如全局缓存未清理）。  
+  **示例**：  
+  ```bash
+  go tool pprof -http=:8080 http://localhost:6060/debug/pprof/heap
+  ```
+
+---
+
+### **六、开放性问题**
+1. **Go 的调度器（GMP 模型）如何工作？**  
+   - **答案**：Goroutine（G）运行在逻辑处理器（P）上，P 绑定到 OS 线程（M）。调度器通过抢占式调度实现高效并发。
+
+2. **如何优化 Go 服务的 HTTP 响应时间？**  
+   - **答案**：  
+     - 使用连接池（如 `http.Transport`）。  
+     - 启用压缩（`gzip`）。  
+     - 异步处理耗时操作（如用 `goroutine` + `channel`）。
+
+---
+
+### **模拟面试题练习**
+#### 手写代码题：
+1. **实现一个带超时的 HTTP 客户端**  
+   ```go
+   func fetchWithTimeout(url string, timeout time.Duration) ([]byte, error) {
+       client := &http.Client{Timeout: timeout}
+       resp, err := client.Get(url)
+       if err != nil {
+           return nil, err
+       }
+       defer resp.Body.Close()
+       return io.ReadAll(resp.Body)
+   }
+   ```
+
+2. **用 Channel 实现并发素数筛**  
+   ```go
+   func sieve(n int) <-chan int {
+       out := make(chan int)
+       go func() {
+           for i := 2; i <= n; i++ {
+               isPrime := true
+               for p := range primes {
+                   if p*p > i {
+                       break
+                   }
+                   if i%p == 0 {
+                       isPrime = false
+                       break
+                   }
+               }
+               if isPrime {
+                   primes <- i
+                   out <- i
+               }
+           }
+           close(out)
+       }()
+       return out
+   }
+   ```
+
+---
+
+
+
 // 接收者（a *Menu）​
 // ​作用：明确方法是 Menu 类型的成员方法，操作的是该类型的实例
 // 为什么用指针：
