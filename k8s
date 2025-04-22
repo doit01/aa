@@ -1,3 +1,41 @@
+Cgroup 与 Namespace 的核心区别
+一、‌功能目标‌
+特性‌	‌Namespace‌	‌Cgroup‌
+核心作用‌	Namespace实现资源的‌视图隔离‌，使进程仅感知特定范围内的资源（如独立的进程树、网络栈等）	; Cgroup‌实现资源的‌用量控制‌，限制进程组对物理资源（CPU、内存等）的占用上限
+设计目标‌	Namespace提供独立运行环境，避免不同进程间的资源可见性冲突	 ; Cgroup确保资源公平分配，防止单个进程或容器耗尽系统资源
+二、‌实现机制‌
+Namespace‌
+通过创建‌独立的系统资源视图‌（如 PID、Network、Mount 等命名空间），使不同命名空间内的进程无法感知彼此的存在。
+示例隔离类型：
+PID Namespace‌：隔离进程 ID，容器内进程以独立 PID 运行。
+Network Namespace‌：隔离网络接口、IP 地址等网络资源。
+
+Cgroup‌
+通过‌层级分组‌和‌子系统控制‌（如 CPU、内存、磁盘 I/O 等）限制进程组的资源使用量。
+核心组件：
+Subsystem‌：资源控制器（如 cpu、memory 子系统）。
+Hierarchy‌：树状结构管理进程组间的资源继承关系。
+三、‌资源类型‌
+资源维度‌	‌Namespace 的作用‌	‌Cgroup 的作用‌
+CPU‌	Namespace不控制 CPU 分配，仅隔离进程的 CPU 视图 ； Cgroup 	限制 CPU 使用时间、核数分配
+内存‌	Namespace不限制内存用量，仅隔离内存访问范围	； Cgroup 限制内存用量上限，触发 OOM 时终止进程
+文件系统‌	Namespace隔离挂载点视图（Mount Namespace）  ;Cgroup 	限制磁盘读写速率或容量
+四、‌应用场景‌
+
+Namespace 典型场景‌
+容器中运行独立进程树（如容器内 PID 1 进程）。
+为每个容器分配独立的网络栈（如 Docker 容器自定义 IP）。
+
+Cgroup 典型场景‌
+限制容器内存用量防止宿主机崩溃。
+为高优先级任务分配更多 CPU 资源。
+五、‌协同关系‌
+互补性‌：Namespace 提供环境隔离，Cgroup 提供资源限制，二者共同保障容器的独立性和稳定性。
+依赖场景‌：若仅用 Namespace 隔离环境但无 Cgroup 限制资源，仍可能因资源争用导致系统崩溃。
+总结
+Namespace 是 Linux 内核的‌“隔离层”‌，通过限制进程的全局资源视图实现环境隔离；Cgroup 是‌“控制器”‌，通过硬性限制物理资源用量保障系统稳定性。二者是容器技术的核心基石，分别解决‌环境独立性‌和‌资源可控性‌问题。
+
+
 场景‌ 	‌Flannel 职责‌ 	‌kube-proxy 职责‌
 同节点 Pod 通信 	通过 cni0 网桥直接转发 	不参与
 跨节点 Pod 通信 	封装流量并维护路由规则 	不参与
