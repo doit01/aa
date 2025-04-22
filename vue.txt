@@ -1,3 +1,84 @@
+样式计算完整示例
+场景描述
+
+假设有以下 HTML 和 CSS 代码：
+
+html
+Copy Code
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    div { color: red; } 
+    .text { color: blue; }
+    #title { color: green; }
+  </style>
+</head>
+<body>
+  <div id="title" class="text" style="color: yellow;">Hello World</div>
+</body>
+</html>
+
+浏览器样式计算过程
+步骤 1：收集所有样式规则‌
+
+浏览器会收集所有可能影响元素的样式来源，优先级从低到高依次为：
+
+浏览器默认样式（如 <div> 默认 display: block）
+开发者定义的样式（<style> 标签或外部 CSS）
+内联样式（style 属性）
+
+本例中涉及以下规则：
+
+css
+Copy Code
+div { color: red; }            /* 标签选择器 */
+.text { color: blue; }         /* 类选择器 */
+#title { color: green; }       /* ID选择器 */
+style="color: yellow;"         /* 内联样式 */
+
+步骤 2：计算选择器优先级（Specificity）‌
+
+优先级计算公式：[内联, ID, 类/伪类/属性, 标签]，数值越大优先级越高。
+
+规则‌	‌优先级值‌
+div { color: red; }	[0,0,0,1]
+.text { color: blue; }	[0,0,1,0]
+#title { color: green; }	[0,1,0,0]
+style="color: yellow;"	[1,0,0,0]
+
+结论‌：内联样式优先级最高，最终 color: yellow 胜出。
+
+步骤 3：处理继承与默认值‌
+
+某些属性（如 color、font-size）会继承父元素的值，但本例中 <div> 是根元素，无父级继承。
+
+如果删除内联样式，优先级顺序为：#title > .text > div，最终颜色为 green。
+如果删除所有样式，浏览器默认颜色为 black。
+步骤 4：生成 Computed Style‌
+
+最终应用到 <div> 的样式计算结果：
+
+css
+Copy Code
+color: yellow;     /* 来自内联样式 */  
+display: block;    /* 来自浏览器默认样式 */
+
+关键机制总结
+
+优先级（Specificity）‌：
+
+内联样式 > ID选择器 > 类/伪类选择器 > 标签选择器‌
+同类规则比较时，后定义的样式覆盖先定义的（源码顺序）
+
+继承性‌：
+color、font、line-height 等属性默认继承
+width、margin、padding 等属性默认不继承
+默认值‌：
+未被任何规则覆盖的属性使用浏览器默认值（如 display: block）
+
+
+
 html渲染过程：下面步骤：解析html，样式计算，布局，分块，绘制，分层，光栅化.
 前端页面渲染核心流程详解
 
