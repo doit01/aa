@@ -1,3 +1,28 @@
+CSS核心两大块：
+css 属性值计算过程包括（层叠，继承）
+视觉格式化模型（盒模型，包含块，流式布局，浮动布局，BFC）
+
+
+BFC
+1、概念
+https://blog.csdn.net/Cui_7788/article/details/103135878?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-0-103135878-blog-121292449.235^v43^pc_blog_bottom_relevance_base6&spm=1001.2101.3001.4242.1&utm_relevant_index=2
+BFC：块级格式化上下文，是页面中的一块渲染区域，有一套自己的渲染规则，决定子元素如何定位，以及和其他元素的关系和相互作用
+2、作用
+
+作用：可以将BFC理解成一个箱子，不会影响箱子外部，解决传统布局带来的问题
+
+传统布局问题：
+相邻块元素的垂直外边距合并：两个盒子设置BFC
+嵌套块元素的垂直外边距塌陷：父级盒子设置BFC，父元素position
+浮动流造成父级元素高度坍塌：父级盒子设置BFC
+浮动元素覆盖：非浮动元素设置BFC
+————————————————
+
+                            版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
+                        
+原文链接：https://blog.csdn.net/weixin_44706267/article/details/121292449
+
+
 CSS 的核心两项
 一、‌盒模型（Box Model）‌
 
