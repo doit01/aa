@@ -1,3 +1,24 @@
+
+阻塞与非阻塞‌
+    默认情况下，通道操作是‌阻塞的‌：发送操作会阻塞，直到数据被接收；接收操作会阻塞，直到有数据可读
+func worker(done chan bool) {
+    // 模拟耗时任务
+    time.Sleep(2 * time.Second)
+    done <- true  // 发送完成信号
+}
+
+func main() {
+    done := make(chan bool)
+    go worker(done)
+    <-done  // 阻塞等待，直到 worker 发送信号
+    fmt.Println("Worker finished")
+}
+
+
+
+
+
+
 Go 语言中的 select 语句详解
 一、定义与基本语法
 
