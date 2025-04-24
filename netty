@@ -1,3 +1,4 @@
+
 Netty 高频面试题整理（2025年最新版）
 一、核心概念与特点
 
@@ -71,4 +72,73 @@ Netty 的改进‌
 封装 NIO 细节，提供开箱即用的编解码器和工具类。
 内置可靠性机制（如心跳、重连）。
 
-以上内容综合了 Netty 的核心知识点，覆盖基础概念、底层原理、性能优化及实际应用场景，适合面试前的系统性复习。
+2025年高级Netty面试题精选（含深度解析）
+一、线程模型与性能优化
+
+Netty如何通过线程模型优化百万级并发连接？‌
+采用主从Reactor多线程模型：BossGroup负责接收连接，WorkerGroup处理I/O事件，业务逻辑可独立线程池处理。
+
+优化点‌：通过NioEventLoopGroup配置线程数（建议Worker线程数为CPU核数×2），避免线程竞争；使用ChannelOption.SO_BACKLOG调整连接队列长度。
+
+如何利用Netty实现零拷贝优化大文件传输？‌
+
+底层机制‌：通过FileRegion直接调用FileChannel.transferTo()，利用操作系统级DMA技术绕过用户态内存复制。
+扩展优化‌：结合CompositeByteBuf合并多个缓冲区，减少内存碎片。
+二、协议与编解码深度设计
+
+如何设计一个高性能的自定义二进制协议？‌
+
+框架‌：定义协议头（魔数、版本、长度字段） + 协议体（业务数据）。
+实现‌：继承ByteToMessageDecoder实现解码器，处理粘包/拆包；使用LengthFieldPrepender自动添加长度字段。
+
+Netty如何支持WebSocket的长连接心跳保活？‌
+
+心跳机制‌：通过IdleStateHandler检测读写空闲，触发自定义心跳包（Ping/Pong帧）。
+容错设计‌：结合WebSocketServerProtocolHandler自动处理协议升级和帧分片。
+三、内存管理与资源调优
+
+Netty内存泄漏的排查与修复方法？‌
+
+检测工具‌：启用-Dio.netty.leakDetectionLevel=paranoid参数，输出泄漏对象堆栈。
+修复策略‌：确保ByteBuf引用计数释放（release()），避免ChannelHandler中未释放的缓冲区累积。
+
+堆外内存（Direct Memory）溢出的根本原因及解决方案？‌
+
+原因‌：未正确释放DirectByteBuf或未限制最大内存分配（-XX:MaxDirectMemorySize）。
+解决‌：使用内存池（PooledByteBufAllocator）复用缓冲区，限制单次分配大小。
+四、高可用与分布式场景
+
+如何设计Netty集群实现负载均衡与故障转移？‌
+
+方案‌：使用ZooKeeper/Etcd注册服务节点，客户端通过一致性哈希算法选择连接。
+容灾‌：结合ConnectionListener监听断连事件，自动切换备用节点。
+
+Netty在分布式RPC框架中的核心作用？‌
+
+职责‌：处理网络通信、协议编解码、异步响应回调。
+优化点‌：使用FastThreadLocal替代JDK原生ThreadLocal，减少线程竞争。
+五、高级特性与扩展
+
+如何实现Netty与Kafka的高吞吐量集成？‌
+
+批处理优化‌：通过Channel.writeAndFlush()批量发送消息，减少I/O次数。
+背压控制‌：使用Channel.isWritable()检测写入状态，避免生产者过载。
+
+Netty如何支持SSL/TLS双向认证与性能调优？‌
+
+实现‌：添加SslHandler并配置密钥库/信任库，启用OpenSSL引擎（如Netty-tcnative）提升加密性能。
+调优‌：设置SSLEngine的会话缓存（Session Resumption）减少握手开销。
+六、源码级问题
+
+Netty事件循环（EventLoop）如何避免JDK NIO的空轮询问题？‌
+
+源码策略‌：在NioEventLoop.run()中统计Selector.select()调用次数，检测到空轮询超过阈值时重建Selector。
+
+Pipeline责任链的传播机制如何实现高效拦截？‌
+
+设计原理‌：通过AbstractChannelHandlerContext.invokeChannelRead()递归调用下一个Handler，结合@Sharable注解复用无状态Handler。
+七、前沿技术结合
+Netty如何与Reactive编程（如Project Reactor）结合？‌
+异步适配‌：将ChannelFuture转换为Mono/Flux，实现响应式背压控制。
+性能对比‌：相比传统回调，响应式模型更易维护但需权衡上下文切换开销。
+
