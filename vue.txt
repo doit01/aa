@@ -1,3 +1,97 @@
+ESM 与 CJS 核心差异与特性解析（2025 年实践版）
+一、‌语法与设计目标‌
+
+语法差异‌
+
+ESM‌：
+使用 import 导入、export/export default 导出。
+示例：
+javascript
+Copy Code
+// 导出
+export const name = "Alice";
+export default function() { /* ... */ }
+
+// 导入
+import { name } from './module.js';
+import myFunc from './module.js';
+
+CJS‌：
+使用 require() 导入、module.exports 或 exports 导出。
+示例：
+javascript
+Copy Code
+// 导出
+module.exports = { name: "Bob" };
+exports.sayHi = () => { /* ... */ };
+
+// 导入
+const module = require('./module.js');
+
+
+设计目标‌
+
+CJS‌：面向 Node.js 服务端环境，强调同步加载与运行时解析。
+ESM‌：作为 JavaScript 语言标准，支持浏览器与 Node.js，强调静态分析与异步加载。
+二、‌加载机制与执行方式‌
+特性‌	‌ESM‌	‌CJS‌
+解析时机‌	编译时静态解析依赖关系	运行时动态解析依赖
+加载方式‌	支持异步加载（浏览器原生支持）	仅同步加载（Node.js 环境）
+作用域‌	模块级作用域，导出值为只读引用	模块级作用域，导出值为值拷贝
+三、‌循环依赖处理‌
+
+CJS‌
+
+运行时解析可能导致未完全初始化的模块被引用。
+示例：
+javascript
+Copy Code
+// A.js
+const B = require('./B.js');  // B 可能未完成初始化
+exports.name = 'A';
+
+
+ESM‌
+
+编译时静态分析依赖，导出值为引用绑定，避免未初始化问题。
+示例：
+javascript
+Copy Code
+// A.js
+import { BName } from './B.js';  // 静态解析确保引用有效
+export const name = 'A';
+
+四、‌使用场景与兼容性‌
+
+推荐场景‌
+
+ESM‌：
+浏览器端开发（原生支持）。
+Node.js 现代项目（需配置 "type": "module" 或 .mjs 后缀）。
+CJS‌：
+Node.js 传统项目或依赖旧库。
+
+互操作性‌
+
+ESM 引入 CJS‌：
+可通过 import 直接引入，但默认导出需通过 default 属性访问（如 import cjsModule from 'cjs'; cjsModule.default）。
+CJS 引入 ESM‌：
+需使用动态导入 import()（如 const esmModule = await import('./esm.js')）。
+五、‌优缺点对比‌
+维度‌	‌ESM‌	‌CJS‌
+性能优化‌	支持 Tree Shaking（静态分析优化）	难以静态分析，优化受限
+浏览器兼容性‌	原生支持（现代浏览器）	需打包工具转换（如 Webpack）
+工程化支持‌	主流构建工具（Vite、Rollup）默认支持	Node.js 生态原生支持，但工具链逐渐向 ESM 迁移
+
+实践建议‌：
+
+新项目优先选择 ‌ESM‌，利用其静态分析与异步加载优势。
+维护旧项目时，可通过 package.json 的 type 字段混合使用两种规范。
+开发 npm 库时，同时编译输出 ESM 和 CJS 格式以兼容不同环境。
+
+
+
+
 如何看待Composition API 和 Options API?
 Composition API和Options API是Vue.js中的两种组件编写方式。
 Options API是Vue.js早期版本中使用的编写方式，通过定义一个options对象进行组件的配置，包括props、data、methods、computed、watch等选项。这种方式的优点在于结构清晰、易于理解，在小型项目中比较实用。
