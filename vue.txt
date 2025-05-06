@@ -1,3 +1,669 @@
+JavaScript 的事件委托（Event Delegation）是一种‌利用事件冒泡机制‌，将子元素的事件监听统一委托给父元素处理的优化技术。以下是其核心原理、实现方式和优缺点：
+
+一、核心原理
+
+事件冒泡‌
+浏览器中事件触发后会从触发元素（target）逐级向上传递到根节点（如 window）。
+
+统一代理‌
+父元素通过监听子元素的事件冒泡，批量处理多个子元素的事件，无需为每个子元素单独绑定监听器。
+
+二、传统方式 vs 事件委托
+传统方式（直接绑定）
+javascript
+Copy Code
+// 为每个 li 单独绑定点击事件
+document.querySelectorAll('li').forEach(li => {
+  li.addEventListener('click', () => {
+    console.log('点击了 li:', li.textContent);
+  });
+});
+
+
+缺点‌：
+
+动态新增的 li 无法自动绑定事件；
+大量子元素时内存占用高（每个元素一个监听器）。
+事件委托方式（父元素代理）
+javascript
+Copy Code
+// 委托给 ul 统一处理
+document.querySelector('ul').addEventListener('click', (event) => {
+  if (event.target.tagName === 'LI') { // 判断触发元素
+    console.log('点击了 li:', event.target.textContent);
+  }
+});
+
+
+优点‌：
+
+动态新增的 li 自动继承事件；
+内存开销低（仅一个监听器）。
+三、实现步骤
+监听父元素事件‌
+选择公共父元素（如 ul、table）绑定事件监听器。
+过滤目标子元素‌
+通过 event.target 判断事件触发的具体元素。
+执行逻辑‌
+根据触发元素类型执行对应操作。
+四、代码示例
+示例 1：动态按钮点击
+html
+Copy Code
+<div id="buttonContainer">
+  <button class="action-btn">按钮1</button>
+  <button class="action-btn">按钮2</button>
+  <!-- 后续可能动态添加更多按钮 -->
+</div>
+
+<script>
+document.getElementById('buttonContainer').addEventListener('click', (e) => {
+  if (e.target.classList.contains('action-btn')) {
+    console.log('点击按钮:', e.target.textContent);
+  }
+});
+</script>
+
+动态新增按钮无需重新绑定事件‌。
+示例 2：表格行操作
+html
+Copy Code
+<table id="dataTable">
+  <tr><td>张三</td><td><button class="delete">删除</button></td></tr>
+  <tr><td>李四</td><td><button class="delete">删除</button></td></tr>
+</table>
+
+<script>
+document.getElementById('dataTable').addEventListener('click', (e) => {
+  if (e.target.classList.contains('delete')) {
+    const row = e.target.closest('tr'); // 向上查找 tr 父元素
+    console.log('删除行:', row.cells[0].textContent);
+    row.remove();
+  }
+});
+</script>
+
+五、适用场景
+大量子元素‌（如列表、表格）
+动态内容‌（如 AJAX 加载的数据）
+性能敏感场景‌（减少内存占用）
+六、注意事项
+精确判断事件源‌
+使用 event.target 结合 classList、tagName 或 matches() 精准过滤：
+javascript
+Copy Code
+if (e.target.matches('.delete-btn')) { ... }
+
+阻止冒泡‌
+若子元素需要阻止事件冒泡，使用 event.stopPropagation()。
+性能权衡‌
+父元素层级不宜过高（如避免委托到 document），否则可能影响事件处理速度。
+七、总结
+方案	内存占用	动态支持	代码复杂度
+传统绑定	高	不支持	低
+事件委托‌	‌低‌	‌支持‌	‌中‌
+
+优先使用事件委托的场景‌：
+
+列表、表格操作；
+动态生成内容；
+需要优化性能的页面。
+
+
+
+eval  把字符串解析成js代码运行。不安全，应该避免。耗费性能。
+
+原型（prototype）是一个非常重要的概念，它为对象提供了继承和共享属性的机制
+每个 JavaScript 对象都有一个与之关联的原型对象，通过原型对象，可以实现属性和方法的共享，从而减少内存占用
+所有的 JavaScript 对象都会从一个 prototype（原型对象）中继承属性和方法
+原型是一个对象，它是其他对象的模板或蓝图。
+当一个对象试图访问一个属性或方法时，如果在该对象自身没有找到，JavaScript 会沿着原型链向上查找，直到找到对应的属性或方法，或者达到原型链的顶端 null 为止。
+ prototype 继承
+所有的 JavaScript 对象都会从一个 prototype（原型对象）中继承属性和方法：
+    Date 对象从 Date.prototype 继承。
+    Array 对象从 Array.prototype 继承。
+    Person 对象从 Person.prototype 继承
+
+每个 JavaScript 对象（除了 null）都自动拥有一个隐藏的属性 __proto__，它指向该对象的原型对象。这个 __proto__ 是实现继承的关键：
+let obj = {};
+console.log(obj.__proto__); // 输出: [object Object], 即 obj 的原型是 Object.prototype
+
+当你使用构造函数创建一个对象时，构造函数的 prototype 属性会成为所有该构造函数创建的实例对象的原型。
+实例
+function Person(name) {
+    this.name = name;
+}
+
+Person.prototype.sayHello = function() {
+    console.log("Hello, my name is " + this.name);
+};
+
+let alice = new Person("Alice");
+alice.sayHello(); // 输出: Hello, my name is Alice
+
+在这个例子中，Person.prototype 是 alice 对象的原型，因此 alice 可以访问 sayHello 方法。
+
+
+Object.create 方法
+
+Object.create 方法允许你创建一个新对象，并将其原型设置给指定的对象。
+实例
+let personPrototype = {
+    sayHello: function() {
+        console.log("Hello, my name is " + this.name);
+    }
+};
+
+let alice = Object.create(personPrototype);
+alice.name = "Alice";
+alice.sayHello(); // 输出: Hello, my name is Alice
+在这个例子中，alice 的原型是 personPrototype，因此 alice 对象可以访问 sayHello 方法。
+
+
+instanceof 运算符用于‌检测对象的原型链‌上是否存在某个构造函数的 prototype 属性
+
+object instanceof Constructor
+‌作用‌：
+检查 object 的原型链中是否包含 Constructor.prototype
+
+instanceof 递归检查原型链，直到找到匹配的 prototype 或到达链的顶端（null）
+无法检测原始类型
+对于原始类型（如字符串、数字），直接使用 instanceof 会返回 false，除非显式使用包装对象：
+
+
+function Animal() {}
+function Dog() {}
+Dog.prototype = Object.create(Animal.prototype); // 继承
+
+const dog = new Dog();
+console.log(dog instanceof Dog);     // true
+console.log(dog instanceof Animal);  // true（原型链向上查找）
+
+
+
+
+
+const user = {
+  name: 'John',
+  age: 30
+};
+
+console.log(user.hasOwnProperty('name')); // true（自身属性）
+console.log(user.hasOwnProperty('toString')); // false（继承自 Object.prototype）
+
+function Person() {
+  this.gender = 'male';
+}
+Person.prototype.species = 'human'; // 原型链属性
+const john = new Person();
+john.name = 'John';
+console.log(john.hasOwnProperty('name')); // true（自身）
+console.log(john.hasOwnProperty('gender')); // true（自身，构造函数中定义的属性）
+console.log(john.hasOwnProperty('species')); // false（继承自原型）
+
+in 会检查原型链，hasOwnProperty 不会。
+
+javascriptCopy Code
+console.log('toString' in {}); // true（继承属性）
+console.log({}.hasOwnProperty('toString')); // false
+
+ES6 替代方案‌：
+Object.hasOwn(obj, prop)（更简洁且避免原型覆盖问题，兼容现代浏览器）。
+
+javascript
+console.log(Object.hasOwn(riskyObj, 'data')); // true
+
+检测自身属性 	obj.hasOwnProperty() 	检查对象是否直接拥有某属性
+避免属性覆盖风险 	Object.prototype.hasOwnProperty.call() 	安全调用替代方案
+
+
+以下是 JavaScript 延迟加载的常见方式及实现方法：
+
+一、脚本延迟加载
+
+defer 属性‌
+
+特性‌：脚本下载与 HTML 解析并行，执行时机在文档解析完成后、DOMContentLoaded 事件前，多个 defer 脚本按顺序执行。
+适用场景‌：依赖 DOM 但无需立即执行的脚本（如页面初始化逻辑）。
+html
+Copy Code
+<script src="script.js" defer></script>
+
+
+async 属性‌
+
+特性‌：脚本下载与 HTML 解析并行，下载完成后立即执行（可能中断解析），多个 async 脚本执行顺序无法保证。
+适用场景‌：独立第三方脚本（如广告、统计代码）。
+html
+Copy Code
+<script src="script.js" async></script>
+
+
+动态创建脚本‌
+
+实现‌：通过 JavaScript 动态插入 <script> 标签触发加载，可控制加载时机（如滚动事件触发后）。
+javascript
+Copy Code
+const script = document.createElement('script');
+script.src = 'script.js';
+document.body.appendChild(script);
+
+
+setTimeout 延迟加载‌
+
+实现‌：通过定时器延迟加载脚本，需手动控制加载逻辑（如页面加载后延迟 2 秒执行）。
+javascript
+Copy Code
+setTimeout(() => {
+  const script = document.createElement('script');
+  script.src = 'script.js';
+  document.body.appendChild(script);
+}, 2000);
+
+
+脚本文件放置底部‌
+
+实现‌：将 <script> 标签置于 HTML 文档末尾（</body> 前），减少对页面渲染的阻塞。
+html
+Copy Code
+<body>
+  <!-- 页面内容 -->
+  <script src="script.js"></script>
+</body>
+
+二、资源延迟加载（图片、视频等）
+
+原生图片延迟加载‌
+
+实现‌：通过 <img> 标签的 loading="lazy" 属性实现视口触发加载（需浏览器支持）。
+html
+Copy Code
+<img src="image.jpg" loading="lazy" alt="示例图片">
+
+
+Intersection Observer API‌
+
+实现‌：检测元素进入视口时动态加载资源（如替换 data-src 为 src），支持复杂交互逻辑。
+javascript
+Copy Code
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const img = entry.target;
+      img.src = img.dataset.src;
+      observer.unobserve(img);
+    }
+  });
+});
+document.querySelectorAll('img[data-src]').forEach(img => observer.observe(img));
+
+
+视频延迟加载‌
+
+实现‌：通过 <video> 标签的 preload="none" 属性禁止预加载，用户交互时触发加载。
+html
+Copy Code
+<video controls preload="none">
+  <source src="video.mp4" type="video/mp4">
+</video>
+
+三、优化建议
+按需加载‌：非关键脚本/资源（如弹窗逻辑）通过事件触发动态加载。
+版本控制‌：对长缓存资源（如 max-age=1年）使用哈希文件名，避免更新问题。
+兼容性处理‌：loading="lazy" 和 Intersection Observer 需针对旧版本浏览器降级方案。
+附：核心差异对比
+方式	执行顺序保证	是否阻塞渲染	适用场景
+defer	✅	❌	依赖 DOM 的初始化脚本
+async	❌	❌	独立第三方脚本
+动态加载	❌	❌	按需触发的非关键脚本
+Intersection API	-	❌	图片/视频视口触发加载
+
+以下是浏览器缓存机制的核心知识点总结，适用于面试场景：
+
+一、浏览器缓存机制核心分类
+
+强缓存‌
+
+原理‌：直接通过 HTTP 响应头字段判断资源是否过期，未过期则直接从本地缓存读取，不发起请求。
+控制字段‌：
+Expires：绝对时间（HTTP/1.0），可能因客户端与服务端时间不同步失效。
+Cache-Control（优先级更高）：
+max-age=3600：相对时间（秒）；
+no-cache：强制使用协商缓存；
+no-store：禁止任何缓存。
+
+协商缓存‌
+
+触发条件‌：强缓存失效后，浏览器携带标识向服务器验证资源是否更新。
+控制字段‌：
+Last-Modified（响应头） / If-Modified-Since（请求头）：基于资源修改时间验证。
+ETag（响应头） / If-None-Match（请求头）：基于资源唯一标识（哈希值）验证，精度更高。
+结果‌：
+返回 304 Not Modified：复用本地缓存；
+返回 200 和新资源：更新缓存。
+二、缓存存储位置
+存储类型	特性
+Service Worker‌	独立线程管理缓存，支持离线访问和精细控制缓存策略（需代码实现）。
+Memory Cache‌	内存缓存，进程关闭后失效，适合高频访问的小文件。
+Disk Cache‌	磁盘缓存，容量大、持久化，适合大文件或低频资源。
+Push Cache‌	HTTP/2 特性，暂存推送资源，优先级最低。
+三、缓存完整流程
+首次请求‌：无缓存，直接请求服务器，响应头设置缓存策略后存储资源。
+再次请求‌：
+检查强缓存：若未过期（通过 Cache-Control 或 Expires），直接使用缓存。
+若强缓存失效，携带 If-Modified-Since 或 If-None-Match 发起请求验证协商缓存。
+服务器返回 304 或新资源，更新缓存标识。
+四、缓存策略优化建议
+静态资源‌：设置长 max-age（如 1年），通过文件名哈希解决更新问题（如 app.a1b2c3.js）。
+动态资源‌：使用 no-cache 或短 max-age，依赖协商缓存保证数据新鲜度。
+禁用缓存‌：敏感数据设置 Cache-Control: no-store。
+五、常见误区
+动态接口误用强缓存‌：导致数据更新延迟。
+过长 max-age 未配合版本控制‌：用户无法获取最新资源。
+忽略 Vary 头‌：未按请求头（如 User-Agent）区分缓存版本。
+附：缓存流程图解
+text
+Copy Code
+浏览器请求资源 -> 检查强缓存
+    ├─ 命中 -> 直接返回缓存（状态码 200，Size 显示 from cache）
+    └─ 未命中 -> 向服务器发起请求（携带协商缓存标识）
+         ├─ 资源未修改 -> 返回 304，复用缓存
+         └─ 资源已修改 -> 返回 200 和新资源，更新缓存标识
+
+
+通过合理配置缓存策略，可显著提升页面加载速度并降低服务器负载。
+
+JavaScript 闭包
+
+还记得函数自我调用吗？该函数会做什么？
+实例
+var add = (function () {
+    var counter = 0;
+    return function () {return counter += 1;}
+})();
+ 
+add();
+add();
+add();
+ 
+// 计数器为 3
+变量 add 指定了函数自我调用的返回字值。
+自我调用函数只执行一次。设置计数器为 0。并返回函数表达式。
+add变量可以作为一个函数使用。非常棒的部分是它可以访问函数上一层作用域的计数器。
+这个叫作 JavaScript 闭包。它使得函数拥有私有变量变成可能。
+闭包是一种保护私有变量的机制，它在函数执行时创建一个私有作用域，从而保护内部的私有变量不受外界干扰。
+直观地说，闭包就像是一个不会被销毁的栈环境
+
+escape() 函数已经从 Web 标准中删除，所以尽量不使用该函数，可以使用 encodeURI 或 encodeURIComponent 代替
+
+
+在JavaScript中，原型（prototype）是实现继承的一种机制。通过原型，对象可以继承另一个对象的属性和方法。这在JavaScript中非常重要，尤其是在处理对象和类的时候。下面通过几个实际开发中的例子来展示如何使用原型：
+示例1：创建具有共享方法的对象
+
+假设我们要创建一个Person对象，并为所有Person实例共享一些方法，如greet方法。
+
+function Person(name) {
+    this.name = name;
+}
+ 
+Person.prototype.greet = function() {
+    console.log("Hello, my name is " + this.name);
+};
+ 
+let person1 = new Person("Alice");
+let person2 = new Person("Bob");
+ 
+person1.greet(); // 输出: Hello, my name is Alice
+person2.greet(); // 输出: Hello, my name is Bob
+
+示例2：扩展内置对象的方法
+
+我们还可以扩展JavaScript内置对象的方法，比如扩展Array的isEmpty方法。
+
+Array.prototype.isEmpty = function() {
+    return this.length === 0;
+};
+ 
+let arr1 = [1, 2, 3];
+let arr2 = [];
+ 
+console.log(arr1.isEmpty()); // 输出: false
+console.log(arr2.isEmpty()); // 输出: true
+
+示例3：模拟类继承（使用原型链）
+
+在ES6中，我们通常使用class关键字来创建类，但在ES5及以前，我们可以通过原型链来实现继承。
+
+function Animal(name) {
+    this.name = name;
+}
+ 
+Animal.prototype.speak = function() {
+    console.log(this.name + " makes a sound.");
+};
+ 
+function Dog(name) {
+    Animal.call(this, name); // 调用父类的构造函数
+}
+ 
+// 设置Dog的原型为Animal的实例，实现继承
+Dog.prototype = Object.create(Animal.prototype);
+Dog.prototype.constructor = Dog; // 修正构造函数指向，避免被覆盖为Animal的构造函数
+ 
+Dog.prototype.speak = function() { // 重写speak方法，添加特定行为
+    console.log(this.name + " says Woof!");
+};
+ 
+let dog = new Dog("Buddy");
+dog.speak(); // 输出: Buddy says Woof!
+
+作为函数方法调用函数
+
+在 JavaScript 中, 函数是对象。JavaScript 函数有它的属性和方法。
+
+call() 和 apply() 是预定义的函数方法。 两个方法可用于调用函数，两个方法的第一个参数必须是对象本身。
+实例
+function myFunction(a, b) {
+    return a * b;
+}
+myObject = myFunction.call(myObject, 10, 2);     // 返回 20
+
+尝试一下 »
+
+实例
+function myFunction(a, b) {
+    return a * b;
+}
+myArray = [10, 2];
+myObject = myFunction.apply(myObject, myArray);  // 返回 20
+
+尝试一下 »
+
+两个方法都使用了对象本身作为第一个参数。 两者的区别在于第二个参数： apply传入的是一个参数数组，也就是将多个参数组合成为一个数组传入，而call则作为call的参数传入（从第二个参数开始）。
+
+在 JavaScript 严格模式(strict mode)下, 在调用函数时第一个参数会成为 this 的值， 即使该参数不是一个对象。
+
+在 JavaScript 非严格模式(non-strict mode)下, 如果第一个参数的值是 null 或 undefined, 它将使用全局对象替代。 
+
+在相同的作用域或块级作用域中，不能使用 let 关键字来重置 var 关键字声明的变量:
+
+var x = 2;       // 合法
+let x = 3;       // 不合法
+
+{
+    var x = 4;   // 合法
+    let x = 5   // 不合法
+}
+
+在相同的作用域或块级作用域中，不能使用 let 关键字来重置 let 关键字声明的变量:
+
+let x = 2;       // 合法
+let x = 3;       // 不合法
+
+{
+    let x = 4;   // 合法
+    let x = 5;   // 不合法
+}
+
+在相同的作用域或块级作用域中，不能使用 var 关键字来重置 let 关键字声明的变量:
+
+let x = 2;       // 合法
+var x = 3;       // 不合法
+
+{
+    let x = 4;   // 合法
+    var x = 5;   // 不合法
+}
+
+
+
+Undefined 不是 Null
+
+null 用于对象, undefined 用于变量，属性和方法。
+
+对象只有被定义才有可能为 null，否则为 undefined。
+
+如果我们想测试对象是否存在，在对象还没定义时将会抛出一个错误。
+
+错误的使用方式：
+
+if (myObj !== null && typeof myObj !== "undefined") 
+
+正确的方式是我们需要先使用 typeof 来检测对象是否已定义：
+
+if (typeof myObj !== "undefined" && myObj !== null) 
+
+
+
+1、Object.assign 方法只会拷贝源对象自身的并且可枚举的属性到目标对象，继承属性和不可枚举属性是不能拷贝的。
+
+2、针对深拷贝，需要使用其他办法，因为 Object.assign()拷贝的是属性值。假如源对象的属性值是一个对象的引用，那么它也只指向那个引用。
+
+3、目标对象自身也会改变
+
+与$.extend()的比较
+
+我们通过一个简单的示例来比较两者有什么不同，
+
+            var target={name:'guxin',age:18}
+            var source1={state:'signle',age:22}
+            var source2={mood:'happy',age:25}
+            var result=Object.assign(target,source1,source2)
+            console.log(target,'assign')
+            var targetObj={name:'guxin',age:18}
+            var sourceObj1={state:'signle',age:22}
+            var sourceObj2={mood:'happy',age:25}
+            var result=$.extend(targetObj,sourceObj1,sourceObj2)
+            console.log(targetObj,'extend')
+————————————————
+这两个方法，除了兼容性应该是一样的
+
+
+作用域插槽实现‌
+#default="scope" 是 Vue3 中用于获取‌作用域插槽数据‌的语法，主要用于表格组件（如 Element Plus 的 <el-table-column>）中访问当前行数据、索引及其他关联属性‌
+#default="scope" 	可访问完整对象（scope.row、scope.$index、scope.column 等）‌17 	需同时操作行数据、索引或列配置时
+#default="{ row }" 	仅能访问解构后的 row 属性‌1 	仅需操作当前行数据时
+
+<template #default="scope">
+            <el-button
+              v-hasPerm="['sys:config:update']"
+              type="primary"
+              size="small"
+              link
+              icon="edit"
+              @click="handleOpenDialog(scope.row.id)"
+            >
+
+
+<el-form ref="queryFormRef" :model="queryParams" :inline="true">??
+
+:model="queryParams"‌
+
+    绑定表单数据对象，所有表单项的 v-model 均基于此对象实现双向绑定‌25。
+    示例：
+
+    htmlCopy Code
+    <el-form-item label="用户名称" prop="userName">  
+      <el-input v-model="queryParams.userName" />  
+    </el-form-item>  
+
+‌:inline="true"‌
+
+    使表单项水平排列，适用于搜索栏等紧凑布局场景‌35。
+    需配合 CSS 调整间距（如 margin-right）优化显示效果。
+
+‌ref="queryFormRef"‌
+
+    提供对表单实例的引用，用于调用表单方法（如校验、重置）‌25。
+    示例：
+
+    javascriptCopy Code
+    this.$refs.queryFormRef.resetFields(); // 重置表单字段  
+
+
+Directive 的使用场景，用于权限校验
+import type { App } from "vue";
+
+import { hasPerm } from "./permission";
+
+// 全局注册 directive
+export function setupDirective(app: App<Element>) {
+  // 使 v-hasPerm 在所有组件中都可用
+  app.directive("hasPerm", hasPerm);
+}
+按钮上使用
+
+路由
+
+hooks (stompjs)
+component
+view
+
+store 
+Vue 中 Store 的核心使用场景
+一、‌跨组件状态共享‌
+
+当多个‌非父子关系组件‌需要共享同一状态（如用户登录信息、全局主题配置、购物车数据）时，Store 提供集中式的状态管理，避免通过 props 或事件总线传递数据的繁琐性‌。
+示例场景‌：
+
+用户登录状态在导航栏、个人中心页、权限按钮组件中共享。
+电商应用中，商品列表页和购物车组件共享购物车数据。
+二、‌复杂状态逻辑管理‌
+
+当应用涉及‌多层嵌套组件间的状态交互‌或‌异步操作‌（如 API 请求、定时任务）时，Store 通过 actions 和 mutations 规范状态变更流程，确保代码可维护性‌。
+示例场景‌：
+
+从后端获取用户权限数据后，触发多个组件的渲染更新。
+提交表单时，通过 actions 处理异步请求，再通过 mutations 更新状态。
+三、‌状态持久化与缓存‌
+
+当需要‌持久化部分状态‌（如用户 Token、本地偏好设置）或‌缓存高频访问数据‌（如商品分类列表）时，Store 可结合 localStorage 或缓存策略实现‌。
+示例场景‌：
+
+用户登录后，Token 存储于 Store 并同步至 localStorage。
+频繁访问的配置数据通过 Store 缓存，减少重复 API 调用。
+四、‌调试与状态追溯‌
+
+当需要‌追踪状态变更历史‌或‌快速定位问题‌时，Vuex Store 与 Vue DevTools 深度集成，支持时间旅行调试、状态快照导出等高级功能‌。
+示例场景‌：
+
+复现用户操作导致的状态异常时，通过 DevTools 回放 mutations 记录。
+导出当前 Store 状态快照用于测试环境复现问题。
+使用 Store 的核心优势
+特性‌	‌作用‌	‌相关引用‌
+集中化管理‌	统一维护全局状态，避免分散在各组件的重复逻辑	‌
+响应式更新‌	状态变更自动触发依赖组件的更新，无需手动监听事件	‌
+严格数据流‌	通过 mutations 同步修改、actions 处理异步，确保变更可预测、可追踪	‌
+模块化扩展‌	支持分模块管理状态，适用于大型项目（如独立用户模块、订单模块）	‌
+不推荐使用 Store 的情况
+简单状态交互‌：父子组件间通过 props/$emit 直接传递数据即可‌。
+局部组件状态‌：仅单个组件使用的数据应存储在组件的 data 中‌。
+小型项目‌：若状态管理需求简单，引入 Store 可能增加不必要的复杂度‌。
+总结
+
+Vuex Store 的核心价值在于‌管理跨组件的复杂状态‌，通过集中化、响应式和严格规则提升代码可维护性‌。需结合项目规模与需求权衡使用，避免过度设计。
+
+
 ESM 与 CJS 核心差异与特性解析（2025 年实践版）
 一、‌语法与设计目标‌
 
