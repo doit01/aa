@@ -1,3 +1,136 @@
+Java信号量（Semaphore）是Java并发编程中的一个同步辅助类，它主要用于控制同时访问特定资源的线程数量，信号量可以用来保护有限资源，以避免因资源竞争而导致的系统崩溃。下面为你介绍几个Java信号量的使用例子：
+
+### 示例一：限制同时访问资源的线程数量
+在这个示例中，我们创建了一个允许最多3个线程同时访问资源的`Semaphore`对象，创建了一个包含10个线程的线程池，并将任务提交到线程池。每个任务在访问资源之前都会尝试获取信号量的许可，如果无法获得许可，则线程将阻塞等待，当任务访问完资源后，它会释放信号量的许可，以便其他线程可以获取许可并访问资源。
+```java
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+
+public class SemaphoreExample {
+    private static final int MAX_THREADS = 3; // 允许同时访问资源的线程数量
+    private static final Semaphore semaphore = new Semaphore(MAX_THREADS); // 创建信号量对象
+
+    public static void main(String[] args) {
+        ExecutorService executorService = Executors.newFixedThreadPool(10); // 创建一个固定大小的线程池
+        for (int i = 0; i < 10; i++) {
+            executorService.submit(new Task()); // 提交任务到线程池
+        }
+        executorService.shutdown(); // 关闭线程池
+    }
+
+    static class Task implements Runnable {
+        @Override
+        public void run() {
+            try {
+                semaphore.acquire(); // 获取许可
+                System.out.println(Thread.currentThread().getName() + " is accessing the resource");
+                Thread.sleep(2000); // 模拟访问资源耗时
+                System.out.println(Thread.currentThread().getName() + " has finished accessing the resource");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                semaphore.release(); // 释放许可
+            }
+        }
+    }
+}
+```
+
+### 示例二：实现简单的登录队列
+下面的示例实现了简单的登录队列，使用信号量来限制系统中的用户数量。`tryLogin`方法尝试获取许可证，如果成功则允许登录，`logout`方法释放许可证。
+```java
+import java.util.concurrent.Semaphore;
+
+class LoginQueueUsingSemaphore {
+    private Semaphore semaphore;
+
+    public LoginQueueUsingSemaphore(int slotLimit) {
+        semaphore = new Semaphore(slotLimit);
+    }
+
+    boolean tryLogin() {
+        return semaphore.tryAcquire();
+    }
+
+    void logout() {
+        semaphore.release();
+    }
+
+    int availableSlots() {
+        return semaphore.availablePermits();
+    }
+}
+```
+
+### 示例三：模拟银行办理业务
+在这个示例中，我们模拟了客户在银行办理业务的场景，银行有5个窗口，即最多允许5个客户同时办理业务。每个客户办理业务所需的时间是随机的。
+```java
+import java.util.Random;
+import java.util.concurrent.Semaphore;
+
+public class BankService {
+    public static void main(String[] args) {
+        Runnable customer = new Runnable() {
+            final Semaphore availableWindow = new Semaphore(5, true);
+            int count = 1;
+
+            @Override
+            public void run() {
+                int time = (int) (Math.random() * 10 + 3);
+                int num = count++;
+                try {
+                    availableWindow.acquire();
+                    System.out.println("正在为第【" + num + "】个客户办理业务，需要时间:" + time + "s!");
+                    Thread.sleep(time * 1000);
+                    if (availableWindow.hasQueuedThreads()) {
+                        System.out.println("第【" + num + "】个客户已办理完业务，有请下一位!");
+                    } else {
+                        System.out.println("第【" + num + "】个客户已办理完业务，没有客户了，休息中!");
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    availableWindow.release();
+                }
+            }
+        };
+
+        for (int i = 1; i <= 10; i++) {
+            new Thread(customer).start();
+        }
+    }
+}
+```
+
+### 示例四：限制文件服务器的并发连接数
+假设有一个文件服务器只允许最多五个客户端连接上传文件，超过这个限额的新尝试将会被挂起等待其他客户断开连接后再继续。
+```java
+import java.util.concurrent.Semaphore;
+import java.util.Random;
+
+public class FileServer {
+    private static final int MAX_CONNECTIONS = 5;
+    private final Semaphore connectionLimiter = new Semaphore(MAX_CONNECTIONS, true);
+
+    public void uploadFile(String fileName) throws InterruptedException {
+        System.out.println(Thread.currentThread().getName() + " is trying to connect.尝试获取许可");
+        connectionLimiter.acquire();
+        try {
+            System.out.println(Thread.currentThread().getName() + " connected and uploading file: " + fileName);
+            // 模拟上传过程
+            Thread.sleep(new Random().nextInt(2000));
+            System.out.println(Thread.currentThread().getName() + " finished uploading.");
+        } finally {
+            connectionLimiter.release();
+        }
+    }
+}
+```
+
+这些示例展示了Java信号量在不同场景下的使用方法，通过合理地使用信号量，可以确保程序在并发环境下的正确性和稳定性。
+
+
 以下为你介绍一些常见的JVM优化面试题及参考答案：
 
 ### 基础概念类
