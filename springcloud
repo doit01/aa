@@ -1,3 +1,56 @@
+springboot starter 自定义
+1 create base project module
+2 add meta data{
+create meta-inf directory in src/main/resources/
+add spring.factories file in which delares a auto configration class
+
+spring.factories 
+like org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.example.starter.MyAutoConfiguration
+
+}
+3 write a autoconfration class using @ConditionalOnClass
+@ConditionalOnMissingBean, @ConditionalOnProperty to set the condition
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ConditionalOnClass({ MyService.class })
+@EnableConfigurationProperties(MyProperties.class)
+public class MyAutoConfiguration {
+    @Autowired
+    private MyProperties myProperties;
+
+    @Bean
+    @ConditionalOnMissingBean(MyService.class)
+    public MyService myService() {
+        return new MyServiceImpl(myProperties.getMessage());
+    }
+}
+
+4 write the configration property class by using @ConfigurationProperties
+it can bind the propties in configration yml file to the bean.
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "my.service")
+public class MyProperties {
+    private String message;
+
+    // getters and setters...
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+
+5 deploy it the nexus or maven central
 服务发现与配置管理面试题详解
 一、‌服务发现核心机制‌
 
