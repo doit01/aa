@@ -1,3 +1,26 @@
+查找字符串数组中的最长公共前缀
+横向扫描的基本思路是，将数组的第一个字符串作为基准字符串，然后与数组中的其他字符串逐个字符进行比较，直到找到不匹配的字符或达到最短字符串的末尾
+public class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        if (strs == null || strs.length == 0) return "";
+        
+        // 以第一个字符串作为基准
+        String prefix = strs[0];
+        
+        for (int i = 1; i < strs.length; i++) {
+            while (strs[i].indexOf(prefix) != 0) {
+                // 如果当前字符串不以prefix开始，则缩短prefix
+                prefix = prefix.substring(0, prefix.length() - 1);
+                // 如果prefix为空，则直接返回""
+                if (prefix.isEmpty()) return "";
+            }
+        }
+        return prefix;
+    }
+}
+
+
+
 用synchronized修饰方法可以把整个方法变为同步代码块，synchronized方法加锁对象是this；
 通过合理的设计和数据封装可以让一个类变为“线程安全”；一个类没有特殊说明，默认不是thread-safe；
 
