@@ -16,3 +16,254 @@ class Solution {
         return slow;
     }
 }
+
+
+import java.util.*;
+
+public class My {
+
+
+  static   public class CombinationRecursive {
+      public static List<List<String>> combination(String[] elements, int k) {
+          List<List<String>> result = new ArrayList<>();
+          if (k > elements.length || elements.length <= 0) {
+              return result;
+          }
+          backtrack(elements, result, new ArrayList<>(), 0, k);
+          return result;
+      }
+
+      private static void backtrack(String[] elements, List<List<String>> result, List<String> current, int start, int k) {
+          // 如果当前组合的长度等于 k，将其添加到结果列表中
+          if (current.size() == k) {
+              result.add(new ArrayList<>(current));
+              return;
+          }
+          // 从 start 开始遍历元素数组
+          for (int i = start; i < elements.length; i++) {
+              // 将当前元素添加到累积组合中
+              current.add(elements[i]);
+              // 递归调用，继续选择下一个元素
+              backtrack(elements, result, current, i + 1, k - 1);
+              // 回溯，移除最后一个元素
+              current.remove(current.size() - 1);
+          }
+      }
+  }
+
+
+    //给定两个整数 n 和 k，返回范围 [1, n] 中所有可能的 k 个数的组合。
+   static class Solutioncombine {
+        List<List<Integer>> listTotal = new ArrayList<>();
+
+        private void backtrack(int n, int k, List<Integer> list, int index) {
+            if (list.size() == k) {
+                listTotal.add(new ArrayList<>(list));
+                System.out.println("each:"+list);
+                return;
+            }
+            for (int i = index; i <= n; i++) {
+                // 经典回溯模板
+                list.add(i);
+                // 以 i + 1进行递归
+                backtrack(n , k, list, i + 1);
+                list.remove(list.size() - 1);
+                System.out.println("listinfor:"+list);
+            }
+        }
+
+        public List<List<Integer>> combine(int n, int k) {
+            backtrack(n, k, new ArrayList<Integer>(), 1);
+            return listTotal;
+        }
+    }
+
+          //将有序数组转换为二叉搜索树
+    class Solution {
+        public TreeNode sortedArrayToBST(int[] nums) {
+            return helper(nums, 0, nums.length - 1);
+        }
+
+        public TreeNode helper(int[] nums, int left, int right) {
+            if (left > right) {
+                return null;
+            }
+
+            // 总是选择中间位置左边的数字作为根节点
+            int mid = (left + right) / 2;
+
+            TreeNode root = new TreeNode(nums[mid]);
+            root.left = helper(nums, left, mid - 1);
+            root.right = helper(nums, mid + 1, right);
+            return root;
+        }
+
+                       // 二叉树的中序遍历 middle order
+              public List<Integer> inorderTraversal(TreeNode root) {
+                  List<Integer> res = new ArrayList<Integer>();
+                  inorder(root, res);
+                  return res;
+              }
+
+              public void inorder(TreeNode root, List<Integer> res) {
+                  if (root == null) {
+                      return;
+                  }
+                  inorder(root.left, res);
+                  res.add(root.val);
+                  inorder(root.right, res);
+              }
+
+              public boolean isSameTree(TreeNode p, TreeNode q) {
+                  if (p == null && q == null) {
+                      return true;
+                  }else if (p == null || q == null) {
+                      return false;
+                  }
+                  if(p.val== q.val){
+                      return    isSameTree(p.left, q.left)&& isSameTree(p.right, q.right);
+                  }
+                  return false;
+              }
+
+
+
+
+
+
+    }
+
+
+/// 单词拆分 给你一个字符串 s 和一个字符串列表 wordDict 作为字典。如果可以利用字典中出现的一个或多个单词拼接出 s 则返回 true。
+    public boolean wordBreak(String s, List<String> wordDict) {
+        Set<String> wordSet = new HashSet<>(wordDict); // 将字典转换为集合以提高查询速度
+        int n = s.length();
+        boolean[] dp = new boolean[n + 1]; // dp[i] 表示 s 的前 i 个字符能否被字典中的单词拼接而成
+        dp[0] = true; // 空字符串总是可以被拼接
+
+        for (int i = 1; i <= n; i++) {
+            for (int j = 0; j < i; j++) {
+                if (dp[j] && wordSet.contains(s.substring(j, i))) {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+
+        return dp[n];
+    }
+/// sell stocks 给定一个数组 prices ，其中 prices[i] 是一支给定的股票在第 i 天的价格。
+    public int maxProfit(int prices[]) {
+        int minprice = Integer.MAX_VALUE;
+        int maxprofit = 0;
+        for (int i = 0; i < prices.length; i++) {
+            if (prices[i] < minprice) {
+                minprice = prices[i];
+            } else if (prices[i] - minprice > maxprofit) {
+                maxprofit = prices[i] - minprice;
+            }
+        }
+        return maxprofit;
+    }
+
+    //reverse words in a string
+    public static String reverseWords(String s) {
+//        String reversed = reverseWords("a good   example");
+       String[] words = s.trim().split("\\s+"); // 按空格分割字符串
+        String[] reversedWords = new String[words.length];
+          for(int i = 0; i < words.length; i++)
+          {
+              reversedWords[words.length-i-1]=words[i].trim();
+              System.out.println("="+reversedWords[words.length-i-1]+"=");
+
+          }
+        System.out.println(reversedWords.length);
+        System.out.println(reversedWords);
+          return   String.join(" ", reversedWords); // 连接数组元素并用空格分割
+    }
+
+    /// 给定一个排序数组和一个目标值，在数组中找到目标值，并返回其索引。如果目标值不存在于数组中，返回它将会被按顺序插入的位置。
+    public int searchInsert(int[] nums, int target) {
+        int n = nums.length;
+        int left = 0, right = n - 1, ans = n;
+        while (left <= right) {
+            int mid = ((right - left) >> 1) + left;
+            if (target <= nums[mid]) {
+                ans = mid;
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return ans;
+    }
+
+
+//
+//    作者：力扣官方题解
+//    链接：https://leetcode.cn/problems/search-insert-position/solutions/333632/sou-suo-cha-ru-wei-zhi-by-leetcode-solution/
+//    来源：力扣（LeetCode）
+//    著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+    public static void main(String[] args) {
+        new Solutioncombine().combine(5,3);
+
+        String reversed = reverseWords("a good   example");
+        System.out.println(reversed); // 输出应为 "world hello"
+
+        WordBreak wb = new WordBreak();
+
+//        String s = "leetcode";
+//        List<String> wordDict = List.of("leet", "code");
+//        System.out.println(wb.wordBreak(s, wordDict)); // 输出应为 true
+
+        //基于红黑树实现的，它能够存储不重复的元素，并且元素是有序的
+        TreeSet<Integer> treeSet = new TreeSet<>();
+
+        // 添加元素
+        treeSet.add(5);
+        treeSet.add(3);
+        treeSet.add(8);
+        treeSet.add(1);
+
+        // 遍历并打印元素
+        for (Integer num : treeSet) {
+            System.out.println(num);
+        }
+
+
+        TreeMap<Integer, String> treeMap = new TreeMap<>();
+
+        // 添加键值对
+        treeMap.put(3, "C");
+        treeMap.put(1, "A");
+        treeMap.put(2, "B");
+
+        // 遍历并打印键值对
+        for (Integer key : treeMap.keySet()) {
+            System.out.println(key + " : " + treeMap.get(key));
+        }
+    }
+
+   //find the kth smallest element in a binary search tree
+    public int kthSmallest(TreeNode root, int k) {
+        Deque<TreeNode> stack = new ArrayDeque<TreeNode>();
+        while (root != null || !stack.isEmpty()) {
+            while (root != null) {
+                stack.push(root);
+                root = root.left;
+            }
+            root = stack.pop();
+            --k;
+            if (k == 0) {
+                break;
+            }
+            root = root.right;
+        }
+        return root.val;
+    }
+
+
+
+
+}
