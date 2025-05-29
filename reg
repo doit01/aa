@@ -1,0 +1,10 @@
+  Matcher duplicatedLetter  = Pattern.compile("(.)\\1+").matcher(input);
+        Matcher englishLetter = Pattern.compile("[a-zA-Z]+").matcher(input);
+        Matcher noEngishLetter = Pattern.compile("[^a-zA-Z]+").matcher(input);
+        Matcher numberbegined = Pattern.compile("^\\d").matcher(input);
+        Matcher number = Pattern.compile("[0-9]+").matcher(input);
+        Matcher mutimatcher = Pattern.compile("a{3,4}").matcher(input);
+  while (mutimatcher.find()||number.find()) {
+            System.out.println("number: " + number.group());
+            System.out.println("找到mutimatcher字符: " + mutimatcher.group());
+        }
