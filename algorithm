@@ -1,3 +1,578 @@
+import java.util.ArrayList;
+import java.util.List;
+//返回一个字符串的所有子串
+public class SubstringGenerator {
+    public static void main(String[] args) {
+        String input = "abcde";
+        List<String> substrings = getAllSubstrings(input);
+
+        // 打印所有子串
+        for (String substring : substrings) {
+            System.out.println(substring);
+        }
+    }
+
+    public static List<String> getAllSubstrings(String str) {
+        List<String> substrings = new ArrayList<>();
+        int length = str.length();
+
+        // 外层循环确定子串的起始位置
+        for (int start = 0; start < length; start++) {
+            // 内层循环确定子串的结束位置
+            for (int end = start + 1; end <= length; end++) {
+                // 使用substring方法获取子串
+                substrings.add(str.substring(start, end));
+            }
+        }
+
+        return substrings;
+    }
+}
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class A1 {
+
+
+ 
+   //Definition for singly-linked list.
+    class ListNode {
+       int val;
+       ListNode next;
+       ListNode(int x) {
+           val = x;
+           next = null;
+       }
+   }
+ class Solution {
+
+     // find intersection for singly-linked list.
+     public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+         Set<ListNode> visited = new HashSet<ListNode>();
+         ListNode temp = headA;
+         while (temp != null) {
+             visited.add(temp);
+             temp = temp.next;
+         }
+         temp = headB;
+         while (temp != null) {
+             if (visited.contains(temp)) {
+                 return temp;
+             }
+             temp = temp.next;
+         }
+         return null;
+     }
+
+     /// merge two sorted linked lists
+     public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+         ListNode prehead = new ListNode(-1);
+
+         ListNode prev = prehead;
+         while (l1 != null && l2 != null) {
+             if (l1.val <= l2.val) {
+                 prev.next = l1;
+                 l1 = l1.next;
+             } else {
+                 prev.next = l2;
+                 l2 = l2.next;
+             }
+             prev = prev.next;
+         }
+
+         // 合并后 l1 和 l2 最多只有一个还未被合并完，我们直接将链表末尾指向未合并完的链表即可
+         prev.next = l1 == null ? l2 : l1;
+
+         return prehead.next;
+     }
+ }
+     public class TreeNode {
+       int val;
+       TreeNode left;
+       TreeNode right;
+       TreeNode() {}
+       TreeNode(int val) { this.val = val; }
+       TreeNode(int val, TreeNode left, TreeNode right) {
+           this.val = val;
+           this.left = left;
+           this.right = right;
+       }
+
+
+   }
+
+
+     //sysmatrical check for binary tree
+     public boolean isSymmetric(TreeNode root) {
+         return check(root.left, root.right);
+     }
+
+     public boolean check(TreeNode p, TreeNode q) {
+         if (p == null && q == null) {
+             return true;
+         }
+         if (p == null || q == null) {
+             return false;
+         }
+         return p.val == q.val && check(p.left, q.right) && check(p.right, q.left);
+     }
+
+     //判断是否是有效的括号序列
+     public boolean isValid(String s) {
+         int n = s.length();
+         if (n % 2 == 1) {
+             return false;
+         }
+
+         Map<Character, Character> pairs = new HashMap<Character, Character>() {{
+             put(')', '(');
+             put(']', '[');
+             put('}', '{');
+         }};
+         // stack , 先进后出, last in first out
+         Deque<Character> stack = new LinkedList<Character>();
+         for (int i = 0; i < n; i++) {
+             char ch = s.charAt(i);
+             if (pairs.containsKey(ch)) {
+                 if (stack.isEmpty() || stack.peek() != pairs.get(ch)) {
+                     return false;
+                 }
+                 stack.pop();
+             } else {
+                 stack.push(ch);
+             }
+         }
+         return stack.isEmpty();
+     }
+
+     ///find the duplicate number in an array
+     public int findDuplicate(int[] nums) {
+         HashMap map = new HashMap<Integer, Integer>();
+         for(int i=0;i<nums.length;i++){
+             if(map.containsKey(nums[i])){
+                 return nums[i];
+             }
+             else{
+                 map.put(nums[i],1);
+             }
+         }
+         return -1;
+     }
+
+     //给定一个字符串 s ，请你找出其中不含有重复字符的 最长  的长度。
+     public int lengthOfLongestSubstring(String s) {
+         Set<Character> set = new HashSet<>();
+         int ans = 0;
+         int left = 0;
+         int right = 0;
+         int temp = 0;
+         while (right < s.length()) {
+             char c = s.charAt(right);
+             if (set.contains(c)) {
+                 set.remove(s.charAt(left));
+                 left++;
+                 temp--;
+             } else {
+                 set.add(c);
+                 right++;
+                 temp++;
+                 ans = Math.max(ans, temp);
+             }
+         }
+         return ans;
+     }
+
+    //异位词分组 给定一个字符串数组，将字母异位词组合在一起。字母异位词指字母相同，但排列不同的字符串。
+    public List<List<String>> groupAnagrams_best(String[] strs) {
+        Map<String, List<String>> map = new HashMap<String, List<String>>();
+        for (String str : strs) {
+            char[] array = str.toCharArray();
+            Arrays.sort(array);
+            String key = new String(array);
+            List<String> list = map.getOrDefault(key, new ArrayList<String>());
+            list.add(str);
+            map.put(key, list);
+        }
+        return new ArrayList<List<String>>(map.values());
+    }
+    //    爬楼梯：动态规划
+    int climbingStairsDP(int n) {
+        if (n == 1 || n == 2)
+            return n;
+        // 初始化 dp 表，用于存储子问题的解
+        int[] dp = new int[n + 1];
+        // 初始状态：预设最小子问题的解
+        dp[1] = 1;
+        dp[2] = 2;
+        // 状态转移：从较小子问题逐步求解较大子问题
+        for (int i = 3; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
+    }
+    /* 最大容量：贪心 */
+    int maxCapacity(int[] ht) {
+        // 初始化 i, j，使其分列数组两端
+        int i = 0, j = ht.length - 1;
+        // 初始最大容量为 0
+        int res = 0;
+        // 循环贪心选择，直至两板相遇
+        while (i < j) {
+            // 更新最大容量
+            int cap = Math.min(ht[i], ht[j]) * (j - i);
+            res = Math.max(res, cap);
+            // 向内移动短板
+            if (ht[i] < ht[j]) {
+                i++;
+            } else {
+                j--;
+            }
+        }
+        return res;
+    }
+   //滑动窗口k个数字的最大值
+    public static int[] maxSlidingWindow(int[] nums, int k) {
+        if(nums.length-2<0){
+            return nums;
+        }
+        int[] dp = new int[nums.length-k+1];
+        for (int s = 0; s < dp.length; s++) {
+            int max = nums[s];
+            for (int i = 0; (i < k); i++) {
+                int next = s+i;
+                max = Math.max(max, nums[next]);
+
+                dp[s] = max;
+            }
+        }
+        return dp;
+    }
+
+    public static int[] maxSlidingWindowByQueue(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k == 0) {
+            return new int[0];
+        }
+
+        int n = nums.length;
+        int[] result = new int[n - k + 1];
+        Deque<Integer> deque = new ArrayDeque<>();
+
+        for (int i = 0; i < n; i++) {
+            // 移除比当前元素小的尾部元素
+            while (!deque.isEmpty() && nums[i] >= nums[deque.peekLast()]) {
+                System.out.println("remove: " + deque.pollLast());
+                deque.pollLast();
+            }
+            deque.offerLast(i);
+             System.out.println(deque);
+            // 移除超出窗口范围的队首元素
+            while (deque.peekFirst() < i - k + 1) {
+                deque.pollFirst();
+            }
+            System.out.println("after loop remove: " + deque + " i: " + i);
+            // 记录窗口最大值
+            if (i >= k - 1) {
+                result[i - k + 1] = nums[deque.peekFirst()];
+            }
+
+        }
+        return result;
+    }
+    ///给你一个按照非递减顺序排列的整数数组 nums，和一个目标值 target。请你找出给定目标值在数组中的开始位置和结束位置。
+    public int[] searchRange(int[] nums, int target) {
+        int[] res = {-1, -1};
+
+      for (int i = 0,j= nums.length-1;( i < nums.length&&j>=0); i++,j--){
+          if (nums[i] == target &&res[0]==-1 ) {
+              res[0] = i;
+
+          }
+
+          if (nums[j] == target&&res[1]==-1 ){
+              res[1] = j;
+          }
+      }
+
+      return res;
+    }
+
+    public static void main(String[] args) {
+        topKFrequent(new int[]{1,1,1,2,2,3},2);
+      new  Solutionsubsets().subsets2(new int[]{1,2,3,4});
+      // int[] array = {1,3,-1,-3,5,3,6,7};
+      // Collections.toString(nums);
+//        List<Integer> list = Arrays.stream(array).collect(Collectors.toList());
+//        List<Integer> list = Arrays.stream(array)
+//                .boxed()
+//                .collect(Collectors.toList());
+//
+//        System.out.println(list.get(1));
+//        int k = 3;
+//        int[] result = maxSlidingWindowByQueue(nums, k);
+//        System.out.println(Arrays.toString(result));
+
+
+//        dailyTemperatures(new int[]{9,8,7,6,5,4,3,2,1});
+      //  longestConsecutive(new int[]{9,1,4,7,3,-1,0,5,8,-1,6});
+    }
+
+    //给定一个整数数组 temperatures ，表示每天的温度，返回一个数组 answer ，其中 answer[i] 是指对于第 i 天，下一个更高温度出现在几天后。如果气温在这之后都不会升高，请在该位置用 0 来代替。
+    //输入: temperatures = [73,74,75,71,69,72,76,73]
+    //输出: [1,1,4,2,1,1,0,0]
+    public static int[] dailyTemperatures(int[] temperatures) {
+        int n = temperatures.length;
+        int[] res = new int[n];
+        Stack<Integer> stack = new Stack<>();
+        for (int i = 0; i < n; i++) {
+             while (!stack.isEmpty() && temperatures[i] > temperatures[stack.peek()]) {
+                 int j = stack.pop();
+                 res[j] = i - j;
+             }
+             stack.push(i);
+             System.out.println(stack);
+            System.out.println(Arrays.toString(res));
+        }
+        return res;
+    }
+
+
+   // 给定一个数组 nums，返回所有可能的子集（幂集）。
+//   给定一个不含重复数字的数组 nums ，返回其 所有可能的全排列 。你可以 按任意顺序 返回答案。
+//    输入：nums = [1,2,3]
+//    输出：[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+
+    public static List<List<Integer>> permute(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        List<Integer> cur = new ArrayList<>();
+        backtracking(res, cur, nums);
+        return res;
+    }
+
+    private static void backtracking(List<List<Integer>> res, List<Integer> cur, int[] nums) {
+        // 终止条件
+        if (cur.size() == nums.length) {
+            res.add(new ArrayList<>(cur));
+        }
+        // 处理逻辑
+        for (int i = 0; i < nums.length; i++) {
+            if (!cur.contains(nums[i])) {
+                cur.add(nums[i]);
+                backtracking(res, cur, nums);
+                cur.remove(cur.size() - 1);
+            }
+        }
+    }
+
+   //翻转 反转二叉树
+    public TreeNode invertTree(TreeNode root) {
+        if (root == null) {
+            return null;
+        }
+        TreeNode left = invertTree(root.left);
+        TreeNode right = invertTree(root.right);
+        root.left = right;
+        root.right = left;
+        return root;
+    }
+
+    //    以数组 intervals 表示若干个区间的集合，其中单个区间为 intervals[i] = [starti, endi] 。请你合并所有重叠的区间，并返回 一个不重叠的区间数组，该数组需恰好覆盖输入中的所有区间 。
+//    输入：intervals = [[1,3],[2,6],[8,10],[15,18]]
+//    输出：[[1,6],[8,10],[15,18]]
+//    解释：区间 [1,3] 和 [2,6] 重叠, 将它们合并为 [1,6].
+
+    public int[][] merge(int[][] intervals) {
+        if (intervals.length == 0) {
+            return new int[0][2];
+        }
+        Arrays.sort(intervals, new Comparator<int[]>() {
+            public int compare(int[] interval1, int[] interval2) {
+                return interval1[0] - interval2[0];
+            }
+        });
+        List<int[]> merged = new ArrayList<int[]>();
+        for (int i = 0; i < intervals.length; ++i) {
+            int L = intervals[i][0], R = intervals[i][1];
+            if (merged.size() == 0 || merged.get(merged.size() - 1)[1] < L) {
+                merged.add(new int[]{L, R});
+            } else {
+                merged.get(merged.size() - 1)[1] = Math.max(merged.get(merged.size() - 1)[1], R);
+            }
+        }
+        return merged.toArray(new int[merged.size()][]);
+    }
+
+
+    //    给定一个未排序的整数数组 nums ，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。
+//    请你设计并实现时间复杂度为 O(n) 的算法解决此问题。
+//    输入：nums = [100,4,200,1,3,2]
+//    输出：4
+//    解释：最长数字连续序列是 [1, 2, 3, 4]。它的长度为 4。
+    //9,1,4,7,3,-1,0,5,8,-1,6
+    public static int longestConsecutive(int[] nums) {
+        Arrays.sort(nums); // 排序
+      //  System.out.println(Arrays.toString(nums));
+     //   Map<Integer, Integer> map = new HashMap<>(); // 记录每个数字出现的次数
+        int want = 1; // 记录当前连续序列的长度
+        int maxLen = 1;
+        if(nums==null||nums.length==0){
+            return 0;
+        }
+        int first=nums[0];
+        for( int n: nums){
+            if(n==first+1 ){
+                first=n;
+                maxLen++;
+
+            }
+            else if(n==first){
+
+            }
+            else {
+                first=n;
+                maxLen=1;
+            }
+
+            // else {
+
+            //     maxLen=1;
+            //     //  maxLen=Math.max(maxLen,n-first);
+            // }
+          //  map.put(maxLen, maxLen);
+            want=Math.max(want,maxLen);
+        }
+     //   System.out.println(map);
+       // int arr=   Collections.max(map.values());
+        return want;
+    }
+
+    int ans;
+    public int diameterOfBinaryTree(TreeNode root) {
+        ans = 1;
+        depth(root);
+        return ans - 1;
+    }
+    public int depth(TreeNode node) {
+        if (node == null) {
+            return 0; // 访问到空节点了，返回0
+        }
+        int L = depth(node.left); // 左儿子为根的子树的深度
+        int R = depth(node.right); // 右儿子为根的子树的深度
+        ans = Math.max(ans, L+R+1); // 计算d_node即L+R+1 并更新ans
+        return Math.max(L, R) + 1; // 返回该节点为根的子树的深度
+    }
+
+
+    ///二叉树展开为链表 前序遍历
+    public void flatten(TreeNode root) {
+        List<TreeNode> list = new ArrayList<TreeNode>();
+        preorderTraversal(root, list);
+        int size = list.size();
+        for (int i = 1; i < size; i++) {
+            TreeNode prev = list.get(i - 1), curr = list.get(i);
+            prev.left = null;
+            prev.right = curr;
+        }
+    }
+///前序遍历
+    public void preorderTraversal(TreeNode root, List<TreeNode> list) {
+        if (root != null) {
+            list.add(root);
+            preorderTraversal(root.left, list);
+            preorderTraversal(root.right, list);
+        }
+    }
+    /// 数组的子集
+  static   class Solutionsubsets {
+        List<Integer> t = new ArrayList<Integer>();
+        List<List<Integer>> ans = new ArrayList<List<Integer>>();
+
+        public List<List<Integer>> subsets(int[] nums) {
+            int n = nums.length;
+            for (int mask = 0; mask < (1 << n); ++mask) {
+                t.clear();
+                for (int i = 0; i < n; ++i) {
+                    if ((mask & (1 << i)) != 0) {
+                        t.add(nums[i]);
+                    }
+                }
+                ans.add(new ArrayList<Integer>(t));
+            }
+            return ans;
+        }
+        public List<List<Integer>> subsets2(int[] nums) {
+                dfs(0, nums);
+                return ans;
+            }
+            public void dfs(int cur, int[] nums) {
+                System.out.print("h_cur:"+cur);
+                if (cur == nums.length) {
+                    ans.add(new ArrayList<Integer>(t));
+                   System.out.println("t:"+t);
+                    return;
+                }
+                t.add(nums[cur]);
+                dfs(cur + 1, nums);
+             //   System.out.print(t);
+
+                t.remove(t.size() - 1);
+               // System.out.println(t + " andcur:"+cur);
+                dfs(cur + 1, nums);
+             //   System.out.println("end cur:"+cur);
+        }
+
+
+    }
+
+    //前 K 个高频元素
+//    给你一个整数数组 nums 和一个整数 k ，请你返回其中出现频率前 k 高的元素。你可以按 任意顺序 返回答案
+    public static int[] topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int num : nums) {
+             map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+
+        System.out.println(map);
+
+        // 使用优先队列，按照频率降序排序
+        PriorityQueue<Map.Entry<Integer, Integer>> que =
+                new PriorityQueue<>((a, b) -> b.getValue() - a.getValue());
+
+        // 将 Map.Entry 添加到优先队列中
+        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
+            System.out.println(entry);
+            System.out.println(entry.getKey() + "key-value: " + entry.getValue());
+            que.add(entry);
+        }
+
+        // 提取前 k 个高频元素
+        int[] result = new int[k];
+        for (int i = 0; i < k; i++) {
+            result[i] = que.poll().getKey();
+        }
+
+        return result;
+    }
+// 环形链表  最容易想到的方法是遍历所有节点，每次遍历到一个节点时，判断该节点此前是否被访问过。
+    public boolean hasCycle(ListNode head) {
+        Set<ListNode> seen = new HashSet<ListNode>();
+        while (head != null) {
+            if (!seen.add(head)) {
+                return true;
+            }
+            head = head.next;
+        }
+        return false;
+    }
+
+}
+
+
+
+
+
+
+
 删除排序数组中的重复项
 class Solution {
     public int removeDuplicates(int[] nums) {
