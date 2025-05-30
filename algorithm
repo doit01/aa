@@ -474,9 +474,11 @@ public class A1 {
         List<int[]> merged = new ArrayList<int[]>();
         for (int i = 0; i < intervals.length; ++i) {
             int L = intervals[i][0], R = intervals[i][1];
+            /// add first interval to merged anyway,  last one's right compare to current one's left
             if (merged.size() == 0 || merged.get(merged.size() - 1)[1] < L) {
                 merged.add(new int[]{L, R});
             } else {
+                // set max right to last merged interval
                 merged.get(merged.size() - 1)[1] = Math.max(merged.get(merged.size() - 1)[1], R);
             }
         }
