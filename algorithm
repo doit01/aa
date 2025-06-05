@@ -1,3 +1,37 @@
+数组的度 下 返回最短距离
+public static int findShortestSubArray(int[] nums) {
+      // int left = 0, right = 0,  count = 0;
+       int maxlen = Integer.MAX_VALUE;
+        Map<Integer, Integer> mapcount = new HashMap<>();
+        Map<Integer, Integer> mapleft = new HashMap<>();
+        Map<Integer, Integer> mapright = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+             if (!mapleft.containsKey(nums[i])){
+                 mapleft.put(nums[i], i);
+             }
+             mapright.put(nums[i], i);
+
+            if (mapcount.containsKey(nums[i])) {
+                mapcount.put(nums[i], mapcount.get(nums[i]) + 1);
+            } else {
+                mapcount.put(nums[i], 1);
+            }
+        }
+
+     int maxcount=   mapcount.values().stream().max(Comparator.comparingInt(Integer::intValue)).get();
+
+        for(int i:mapcount.keySet()){
+            if (mapcount.get(i) == maxcount){
+                maxlen=Math.min(maxlen,mapright.get(i)-mapleft.get(i)+1);
+            }
+        }
+
+
+        return  maxlen;
+
+    }
+
+
 /* 基于堆查找数组中最大的 k 个元素 */
 Queue<Integer> topKHeap(int[] nums, int k) {
     // 初始化小顶堆 PriorityQueue 自排序
