@@ -1,3 +1,7 @@
+tail -n 10 filename.txt | head -n 5
+awk 'NR>=5 && NR<=10' xx.log
+sed -n '5,10p' xx.log
+
 查找字符串数组中的最长公共前缀
 横向扫描的基本思路是，将数组的第一个字符串作为基准字符串，然后与数组中的其他字符串逐个字符进行比较，直到找到不匹配的字符或达到最短字符串的末尾
 public class Solution {
