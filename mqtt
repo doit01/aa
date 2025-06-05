@@ -1,0 +1,71 @@
+数据流转大概流程
+
+找到MqttTransportService类==》通过@PostConstruct注解在项目启动后进入init()方法
+==》里面绑定了MqttTransportServerInitializer类即mqtt服务初始化
+==》MqttTransportServerInitializer类继承ChannelInitializer类重写了initChannel方法
+==》initChannel方法里绑定了MqttTransportHandler
+==》进入MqttTransportHandler的channelRead方法，验证消息类型为mqtt时转入processMqttMsg方法
+==》processMqttMsg里进行判断：消息类型为连接时转入processConnect，设备session为临时的转入processProvisionSessionMsg
+否则转入enqueueRegularSessionMsg方法，这里先探讨转入enqueueRegularSessionMsg
+==》转入enqueueRegularSessionMsg后调用processMsgQueue将消息投递到队列
+==》跟进去发现里面调用了processRegularSessionMsg方法
+==》processRegularSessionMsg里根据消息的类型进行转发，比如：发布，订阅，取消订阅，取消连接等等
+==》跟进PUBLISH，转入processPublish方法
+==》转入processDevicePublish，进入发现这里根据消息的主题进行转发，这里选择isDeviceTelemetryTopic对应的transportService.process接口实现
+==》发现这里对消息封装了一下之后转入sendToRuleEngine，将消息发送到规则链
+》继续跟进进入sendToRuleEngine，发现调用ruleEngineMsgProducer.send，即将消息通过生产者发送到队列
+这里对应多个实现，例如：inMemory，Kafka，RabbitMQ等等，默认发送到inMemory内存
+》有生产者那肯定有消费者，我们找到DefaultTbRuleEngineConsumerService核心消费者
+》找到launchMainConsumers方法》launchConsumer》consumerLoop
+》发现consumerLoop是个循环，将消息取出来消费，转submitMessage方法
+》然后转入forwardToRuleEngineActor》调用actorContext.tell，这里开始就是Actor模型流转了，不清楚的可以去百度搜索一下
+》首先调用appActor.tell通过根appActor调用tell方法转入enqueue方法，里面对消息进行了分类，分为高优先级和正常消息队列
+还有initActor()方法创建一系列actor，大概流程：AppActor》TenantActor》RuleChainActor》RuleNodeActor,我们先转入tryProcessQueue方法
+==>然后发现调用了processMailbox，发现这里是将之前分类的消息依次取出来然后调用actor.process(msg)方法依次向下流转处理消息
+
+》ContextAwareActor》process==》doProcess==》…
+how to make a mqtt server?
+0 use netty
+1 create MqttTransportService @Service("MqttTransportService")
+     @PostConstruct
+    public void init() throws Exception {
+        log.info("Setting resource leak detector level to {}", leakDetectorLevel);
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.valueOf(leakDetectorLevel.toUpperCase()));
+
+        log.info("Starting MQTT transport...");
+        bossGroup = new NioEventLoopGroup(bossGroupThreadCount);
+        workerGroup = new NioEventLoopGroup(workerGroupThreadCount);
+        ServerBootstrap b = new ServerBootstrap();
+        b.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new MqttTransportServerInitializer(context, false))
+                .childOption(ChannelOption.SO_KEEPALIVE, keepAlive);
+
+        serverChannel = b.bind(host, port).sync().channel();
+        if (sslEnabled) {
+            b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new MqttTransportServerInitializer(context, true))
+                    .childOption(ChannelOption.SO_KEEPALIVE, keepAlive);
+            sslServerChannel = b.bind(sslHost, sslPort).sync().channel();
+        }
+        log.info("Mqtt transport started!");
+    }
+
+application jar depending on transport mqtt service.
+       <groupId>org.thingsboard.common.transport</groupId>
+    <artifactId>mqtt</artifactId>
+
+
+    2
+    MqttTransportServerInitializer initChannel()
+     ChannelPipeline pipeline = ch.pipeline();
+       pipeline.addLast("decoder", new MqttDecoder(context.getMaxPayloadSize()));
+        pipeline.addLast("encoder", MqttEncoder.INSTANCE);
+MqttTransportHandler handler = new MqttTransportHandler(context, sslHandler);
+
+        pipeline.addLast(handler);
+
+3 MqttTransportHandler
+ public void channelRead(ChannelHandlerContext ctx, Object msg) {
