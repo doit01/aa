@@ -1,3 +1,43 @@
+ThingsBoard 中的 ‌AppActor‌ 是整个 Actor 系统的核心调度枢纽，承担租户管理、消息路由和资源协调的关键职责，具体作用如下：
+
+🔧 ‌核心功能‌
+
+租户 Actor 管理中枢‌
+
+作为系统启动时创建的‌唯一顶级常驻 Actor‌，负责动态创建、维护和销毁所有租户（Tenant）对应的 TenantActor 实例 。
+每个租户首次接入设备或触发规则时，AppActor 会按需初始化其专属的 TenantActor 。
+
+全局消息路由网关‌
+
+所有外部传入的消息（如设备数据、规则引擎事件）首先由 AppActor 接收，再根据‌租户 ID‌ 精准路由至对应的 TenantActor 邮箱 。
+示例：设备上报数据 → AppActor 识别租户 → 转发至目标 TenantActor 。
+
+资源生命周期管控‌
+
+监控租户 Actor 的活动状态，在租户长时间无请求时‌自动回收‌闲置的 TenantActor 以释放内存资源（惰性停止机制）。
+确保高并发场景下仅活跃租户占用运行时资源 。
+⚙️ ‌协作流程示例‌
+mermaid
+Copy Code
+sequenceDiagram
+    participant Device as 设备端
+    participant AppActor
+    participant TenantActor
+    participant RuleChainActor
+    
+    Device ->> AppActor: 发送数据(含租户ID)
+    AppActor ->> TenantActor: 按租户ID路由消息
+    TenantActor ->> RuleChainActor: 调用规则链处理
+    RuleChainActor -->> Device: 返回响应(如RPC指令)
+
+
+💡 ‌设计优势‌：
+
+隔离性‌：租户间 Actor 完全独立，故障互不影响 ；
+弹性伸缩‌：动态管理租户 Actor，支撑百万级设备接入 ；
+简化运维‌：统一入口降低分布式系统复杂度 。
+
+
 要选择适合实时场景的MQTT QoS等级，需平衡消息可靠性、传输延迟及网络条件，核心决策逻辑如下：
 
 📊 ‌QoS等级特性对比‌
