@@ -1,0 +1,36 @@
+Futures.addCallback是Google Guava库中用于增强Java异步编程能力的核心方法，其核心作用是为ListenableFuture注册回调函数，实现任务完成后的自动通知机制。具体功能如下：
+
+🔧 ‌核心功能‌
+
+异步结果自动回调‌
+
+当ListenableFuture关联的异步任务完成时（无论成功或失败），自动触发预设的回调函数，无需主动轮询检查任务状态。
+示例场景：
+java
+Copy Code
+Futures.addCallback(listenableFuture, new FutureCallback<String>() {
+    @Override public void onSuccess(String result) { /* 处理成功结果 */ }  
+    @Override public void onFailure(Throwable t) { /* 处理异常 */ }
+}, executorService);
+
+
+非阻塞式响应‌
+
+替代传统Future.get()的阻塞调用模式，通过回调函数实现结果处理逻辑与任务执行的解耦。
+
+线程池资源控制‌
+
+支持指定ExecutorService执行回调函数，避免回调逻辑占用任务执行线程（默认使用原任务线程）。
+⚠️ ‌关键注意事项‌
+回调延迟风险‌：若未显式指定线程池，回调函数可能因任务线程阻塞而延迟执行（如原线程被占用时）。
+异常处理必要性‌：必须实现onFailure方法以避免未捕获异常导致回调链中断。
+🆚 ‌与传统Future对比‌
+特性‌	Future	ListenableFuture + addCallback
+结果获取‌	阻塞调用get()	自动回调onSuccess/onFailure
+线程效率‌	需轮询消耗CPU	事件驱动零等待
+代码复杂度‌	手动状态管理	声明式回调链
+🌟 ‌设计优势‌
+降低并发复杂度‌：通过回调机制简化异步任务的结果处理流程。
+资源利用率优化‌：结合线程池配置可精准控制回调任务的并发资源。
+
+该机制是Guava对Java原生Future的核心增强，广泛应用于高并发场景如物联网数据处理、批量任务调度等。
