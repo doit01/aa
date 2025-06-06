@@ -1,0 +1,31 @@
+    @Query(nativeQuery = true,
+            value = "SELECT * FROM lc_event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_id = :entityId " +
+                    "AND (:startTime IS NULL OR e.ts >= :startTime) " +
+                    "AND (:endTime IS NULL OR e.ts <= :endTime) " +
+                    "AND (:serviceId IS NULL OR e.service_id ILIKE concat('%', :serviceId, '%')) " +
+                    "AND (:eventType IS NULL OR e.e_type ILIKE concat('%', :eventType, '%')) " +
+                    "AND ((:statusFilterEnabled = FALSE) OR e.e_success = :statusFilter) " +
+                    "AND (:error IS NULL OR e.e_error ILIKE concat('%', :error, '%'))"
+            ,
+            countQuery = "SELECT count(*) FROM lc_event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_id = :entityId " +
+                    "AND (:startTime IS NULL OR e.ts >= :startTime) " +
+                    "AND (:endTime IS NULL OR e.ts <= :endTime) " +
+                    "AND (:serviceId IS NULL OR e.service_id ILIKE concat('%', :serviceId, '%')) " +
+                    "AND (:eventType IS NULL OR e.e_type ILIKE concat('%', :eventType, '%')) " +
+                    "AND ((:statusFilterEnabled = FALSE) OR e.e_success = :statusFilter) " +
+                    "AND (:error IS NULL OR e.e_error ILIKE concat('%', :error, '%'))"
+    )
+    Page<LifecycleEventEntity> findEvents(@Param("tenantId") UUID tenantId,
+                                          @Param("entityId") UUID entityId,
+                                          @Param("startTime") Long startTime,
+                                          @Param("endTime") Long endTime,
+                                          @Param("serviceId") String server,
+                                          @Param("eventType") String eventType,
+                                          @Param("statusFilterEnabled") boolean statusFilterEnabled,
+                                          @Param("statusFilter") boolean statusFilter,
+                                          @Param("error") String error,
+                                          Pageable pageable);
