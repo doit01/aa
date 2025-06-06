@@ -1,0 +1,56 @@
+ForkJoinPool 与普通线程池（如 ThreadPoolExecutor）的核心差异主要体现在‌任务调度机制、适用场景和设计目标‌上，具体对比如下：
+
+🧠 ‌一、核心设计差异‌
+特性‌	‌ThreadPoolExecutor（普通线程池）‌	‌ForkJoinPool‌
+任务调度‌	共享任务队列，所有线程竞争获取任务	‌工作窃取（Work Stealing）‌：每个线程拥有独立任务队列，空闲线程从其他队列‌尾部窃取任务‌
+任务类型‌	处理独立任务单元（无依赖关系）	专为‌递归可分解任务‌设计（如分治算法），支持 fork() 提交子任务、join() 合并结果
+线程数量‌	需手动配置核心/最大线程数，适应I/O或混合型任务	默认线程数 = CPU核心数，‌优化计算密集型任务‌
+任务队列‌	基于 BlockingQueue（如 ArrayBlockingQueue）	每个线程维护‌本地双端队列（Deque）‌，减少竞争
+⚙️ ‌二、工作流程对比‌
+普通线程池（ThreadPoolExecutor）‌
+mermaid
+Copy Code
+graph LR
+    A[任务提交] --> B(共享任务队列)
+    B --> C[线程竞争获取任务]
+    C --> D[执行任务]
+
+瓶颈‌：共享队列可能引发线程竞争，高并发时影响吞吐量。
+适用场景‌：HTTP请求处理、独立事务任务等。
+ForkJoinPool‌
+mermaid
+Copy Code
+graph TB
+    T[主任务] -->|fork| T1[子任务1]
+    T -->|fork| T2[子任务2]
+    T1 -->|join| T
+    T2 -->|join| T
+    Worker1[线程1队列] -->|窃取尾部任务| Worker2[线程2队列]
+
+优势‌：
+负载均衡‌：空闲线程主动窃取任务，减少资源闲置；
+低竞争‌：本地队列优先处理，仅窃取时访问其他队列。
+适用场景‌：递归计算（如归并排序）、大规模数据处理。
+⚠️ ‌三、关键注意事项‌
+
+任务阻塞问题‌
+
+ThreadPoolExecutor：线程阻塞（如I/O）会导致线程闲置，需增大线程数。
+ForkJoinPool：‌仅适合计算密集型任务‌，阻塞会严重降低性能。
+
+资源消耗‌
+
+ForkJoinPool 的工作窃取需维护多队列，内存开销更高。
+
+任务拆分逻辑‌
+
+ForkJoinPool 需‌显式编写递归拆分代码‌（继承 RecursiveTask/RecursiveAction），普通线程池任务无需拆分。
+💎 ‌总结选择建议‌
+场景‌	‌推荐线程池‌
+高I/O等待、独立任务（如Web服务）	ThreadPoolExecutor
+计算密集型递归任务（如并行计算）	ForkJoinPool
+
+简言之：
+
+ForkJoinPool = 工作窃取 + 分治优化 + CPU密集型‌；
+ThreadPoolExecutor = 共享队列 + 通用任务 + 灵活配置‌。
