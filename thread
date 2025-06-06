@@ -54,3 +54,54 @@ ForkJoinPool 需‌显式编写递归拆分代码‌（继承 RecursiveTask/Recu
 
 ForkJoinPool = 工作窃取 + 分治优化 + CPU密集型‌；
 ThreadPoolExecutor = 共享队列 + 通用任务 + 灵活配置‌。
+
+这段描述涉及 ForkJoinPool 的 ‌异步模式（asyncMode）‌ 配置，其核心作用如下：
+
+public static ExecutorService newWorkStealingPool(int parallelism, String namePrefix) {
+        return new ForkJoinPool(parallelism,
+                new ThingsBoardForkJoinWorkerThreadFactory(namePrefix),
+                null, true);
+    }
+ForkJoinPool 's true parameter:
+🔧 ‌异步模式（asyncMode=true）的核心机制‌
+
+调度策略切换‌
+
+默认模式（LIFO）：线程本地任务队列采用‌后进先出‌（栈结构），优先处理最新提交的子任务。
+异步模式（FIFO）：启用本地‌先进先出‌队列，适合处理无依赖关系的独立事件任务（如消息处理）。
+
+适用场景‌
+
+事件驱动型任务‌：当工作线程仅处理无需合并结果的异步任务（如事件回调、日志处理）时，FIFO 模式可减少任务积压延迟。
+避免 join 阻塞‌：若任务不会被显式合并（即不调用 join()），FIFO 可优化任务执行顺序。
+
+性能影响‌
+
+减少线程空闲：FIFO 确保早期提交的任务优先执行，避免默认模式下因递归拆分导致的子任务堆积。
+降低上下文切换：适用于短平快的任务流，与工作窃取算法协同提升吞吐量。
+⚙️ ‌配置方式‌
+
+通过构造函数参数启用异步模式：
+
+java
+Copy Code
+ForkJoinPool pool = new ForkJoinPool(
+    Runtime.getRuntime().availableProcessors(),
+    ForkJoinPool.defaultForkJoinWorkerThreadFactory,
+    null, 
+    true  // asyncMode=true
+);
+
+
+此配置会强制所有本地队列采用 FIFO 策略，但全局工作窃取仍保持从其他队列‌尾部窃取‌的规则。
+
+🆚 ‌与默认模式对比‌
+特性‌	默认模式（LIFO）	异步模式（FIFO）
+任务顺序‌	栈结构（后进先出）	队列结构（先进先出）
+适用场景‌	递归分治任务（需 join）	事件流、无依赖异步任务
+线程行为‌	优先处理最新子任务	优先处理最早提交任务
+⚠️ ‌注意事项‌
+任务类型匹配‌：若任务存在父子依赖（如 RecursiveTask），默认 LIFO 模式更高效。
+资源消耗‌：FIFO 可能增加内存占用（需维护有序队列）。
+
+该设计体现了 ForkJoinPool 的灵活性，通过调度策略适配不同并行场景。
