@@ -1,3 +1,16 @@
+MoreExecutors.directExecutor() 是 Google Guava 库提供的一个特殊 Executor 实现 是在当前线程立即执行任务，而不是将任务提交到线程池异步执行
+同步执行	任务在 execute() 调用线程中立即运行，无线程切换
+零开销	不创建新线程、无任务队列、无线程池调度开销
+替代方案建议
+当需要更灵活控制时：
+java
+// 1. 相同线程但带异常保护
+Executor safeExecutor = Runnable::run; 
+// 2. 有限并行（JDK19+）
+Executor virtualExecutor = Thread.ofVirtual().executor();
+
+
+
 Futures.addCallback是Google Guava库中用于增强Java异步编程能力的核心方法，其核心作用是为ListenableFuture注册回调函数，实现任务完成后的自动通知机制。具体功能如下：
 
 🔧 ‌核心功能‌
