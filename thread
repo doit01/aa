@@ -1,3 +1,96 @@
+CompletableFuture 是 Java 8 引入的异步编程核心类，它扩展了 Future 接口，解决了传统异步编程中的回调嵌套、任务编排和异常处理难题，适用于需要链式调用、结果聚合或响应式编程的场景。其核心特性与使用要点如下：
+
+🔧 ‌一、核心特性‌
+
+链式任务编排‌
+支持通过 thenApply、thenAccept、thenCompose 等方法串联异步操作，避免回调地狱（Callback Hell）。
+
+java
+Copy Code
+CompletableFuture.supplyAsync(() -> "data")
+    .thenApply(s -> s.toUpperCase())  // 转换结果
+    .thenAccept(System.out::println); // 消费结果
+
+
+组合多个任务‌
+
+并行聚合‌：thenCombine 合并两个独立任务结果。
+批量处理‌：allOf / anyOf 等待全部/任意任务完成。
+java
+Copy Code
+CompletableFuture<Void> all = CompletableFuture.allOf(future1, future2);
+all.thenRun(() -> System.out.println("All tasks completed"));
+
+
+异常处理机制‌
+
+exceptionally：捕获异常并返回兜底值。
+handle：统一处理正常结果与异常。
+java
+Copy Code
+future.exceptionally(ex -> "Fallback value"); // 异常时返回默认值
+
+
+异步执行控制‌
+默认使用 ForkJoinPool.commonPool()，但可通过重载方法指定自定义线程池（‌推荐避免共享默认池‌）。
+
+java
+Copy Code
+ExecutorService customPool = Executors.newFixedThreadPool(10);
+CompletableFuture.runAsync(task, customPool);
+
+⚙️ ‌二、底层机制‌
+组件‌	‌作用‌
+ForkJoinPool‌	默认线程池，采用工作窃取算法优化计算密集型任务。
+CompletionStage‌	定义任务编排接口，支撑链式调用与结果传递。
+回调栈‌	内部维护回调链，按顺序触发依赖任务。
+⚠️ ‌三、使用注意事项‌
+
+避免阻塞操作‌
+在异步任务中执行阻塞 I/O 会使线程饥饿，应配合 CompletableFuture.supplyAsync 使用专用线程池。
+
+谨慎使用默认线程池‌
+ForkJoinPool.commonPool() 适用于短期计算任务，长时间运行或 I/O 密集型任务需自定义线程池。
+
+结果获取方式‌
+
+非阻塞：通过回调（如 thenAccept）处理结果；
+阻塞：join()（不抛检查异常）或 get()（需处理 InterruptedException）。
+
+资源泄漏风险‌
+未处理的 CompletableFuture 链可能因未注册回调导致任务滞留，需确保终结操作（如 thenRun）。
+
+💎 ‌四、适用场景‌
+场景‌	‌示例‌
+异步 HTTP 请求聚合	并行调用多个 API 并合并结果。
+流水线数据处理	读取 → 清洗 → 转换 → 存储的链式操作。
+微服务编排	组合多个服务调用结果（如订单 + 库存）。
+
+与传统 Future 对比‌：
+
+能力‌	Future	CompletableFuture
+链式调用	❌	✅
+异常处理	手动检查	内置机制
+多任务组合	需手动实现	原生支持
+🌰 ‌五、代码最佳实践‌
+java
+Copy Code
+// 1. 自定义线程池（避免阻塞操作影响默认池）
+ExecutorService ioPool = Executors.newCachedThreadPool();
+
+// 2. 异步执行 + 异常处理
+CompletableFuture.supplyAsync(() -> fetchDataFromDB(), ioPool)
+    .thenApply(data -> process(data))
+    .exceptionally(ex -> { 
+        log.error("Failed", ex);
+        return Collections.emptyList(); 
+    })
+    .thenAccept(result -> sendNotification(result));
+
+
+总结‌：CompletableFuture 大幅简化了 Java 异步编程，但其线程池行为与异常处理需谨慎配置，适用于需声明式编排异步操作的场景（如微服务调用链、数据流水线）。
+
+
 CountDownLatch 是 Java 并发包（java.util.concurrent）中的同步工具类，其核心作用在于协调多个线程间的执行顺序。其主要功能和作用可概括为以下三点：
 
 等待多个线程完成操作‌
