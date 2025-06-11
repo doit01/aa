@@ -1,3 +1,103 @@
+将关系型数据库（如MySQL/Oracle）数据同步到Iceberg的完整技术方案如下，涵盖实时与批量场景：
+
+🔄 一、实时增量同步（CDC模式）
+核心工具：‌Flink CDC + Iceberg Sink‌
+
+同步流程‌
+
+sql
+Copy Code
+-- Flink SQL 配置示例（MySQL → Iceberg）:ml-citation{ref="2,4" data="citationList"}
+CREATE TABLE mysql_source (
+  id BIGINT PRIMARY KEY,
+  name STRING,
+  update_time TIMESTAMP(3)
+) WITH (
+  'connector' = 'mysql-cdc',
+  'hostname' = 'localhost',
+  'port' = '3306',
+  'database-name' = 'test_db',
+  'table-name' = 'user_table'
+);
+
+CREATE TABLE iceberg_sink (
+  id BIGINT,
+  name STRING,
+  update_time TIMESTAMP(3)
+) WITH (
+  'connector' = 'iceberg',
+  'catalog-name' = 'iceberg_catalog',
+  'catalog-type' = 'hive',
+  'warehouse' = 's3://iceberg-warehouse'
+);
+
+INSERT INTO iceberg_sink SELECT * FROM mysql_source;
+
+优势‌：分钟级延迟，自动捕获INSERT/UPDATE/DELETE事件
+事务保障‌：Iceberg V2格式支持ACID，确保Exactly-Once语义
+
+分库分表处理‌
+
+使用正则匹配同步多表（如'table-name' = 'order_*'）
+合并写入同一Iceberg表，避免数据分散
+⏳ 二、批量全量/增量同步
+方案1：‌Spark/Flink 批处理作业‌
+python
+Copy Code
+# Spark 读取MySQL写入Iceberg示例:ml-citation{ref="1,6" data="citationList"}
+df = spark.read.format("jdbc") \
+  .option("url", "jdbc:mysql://localhost:3306/test_db") \
+  .option("dbtable", "user_table") \
+  .load()
+
+df.writeTo("iceberg_db.user_table").append()
+
+适用场景‌：历史数据初始化或T+1增量同步
+调优关键‌：
+并行读取：按主键分片（partitionColumn+numPartitions）
+小文件合并：写入后触发Iceberg的rewrite_data_files动作
+方案2：‌Dinky数据开发平台‌
+可视化配置MySQL源表与Iceberg目标表映射关系
+自动生成Flink SQL作业，支持定时调度
+⚙️ 三、异构数据库迁移（如Hive→Iceberg）
+
+元数据迁移‌
+
+sql
+Copy Code
+-- 快照方式迁移（零停机）:ml-citation{ref="3,13" data="citationList"}
+CALL iceberg_catalog.system.snapshot('hive_db.orders', 'iceberg_db.orders');
+
+原理‌：复制Hive元数据生成Iceberg表，原始数据文件复用
+
+完全迁移‌
+
+sql
+Copy Code
+-- 替换原表为Iceberg格式:ml-citation{ref="3,14" data="citationList"}
+CALL iceberg_catalog.system.migrate('hive_db.orders');
+
+注意‌：需短暂停写，迁移后原表不可用
+🔐 四、关键配置与优化
+痛点‌	‌解决方案‌
+数据一致性‌	开启Iceberg ACID事务（write.format.default=parquet + V2格式）
+Schema变更‌	Iceberg Schema Evolution自动兼容字段增删
+写入性能‌	启用Flink Checkpoint（间隔10-30s）+ 并行度调优
+存储成本‌	S3/OSS生命周期策略：热数据→标准存储，冷数据→低频/归档存储
+
+典型案例‌：某金融平台通过Flink CDC同步10亿级MySQL数据到Iceberg，查询延迟从小时级降至秒级。
+
+⚠️ 五、注意事项
+权限控制‌：
+Iceberg集成Apache Ranger/Ranger Iceberg插件实现列级权限
+版本兼容‌：
+Flink 1.14+ 推荐使用Iceberg 1.0+ API
+数据回溯‌：
+利用Time Travel查询历史快照（SELECT * FROM table TIMESTAMP AS OF '2025-06-10'）
+
+迁移策略选择：‌实时场景用CDC，存量迁移用批处理+快照机制‌，混合负载需启用流批一体架构。
+
+
 
 ⚖️ 三、技术选型建议
 场景‌	‌推荐方案‌	‌核心优势‌
