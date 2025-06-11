@@ -1,4 +1,11 @@
- Standalone 集群模式（生产部署）‌
+存储方案替代 HDFS‌
+‌存储类型‌ 	配置方式示例 	适用场景 	引用
+‌本地文件系统‌ 	df = spark.read.csv("file:///data/") 	开发测试/小数据 	34
+‌Amazon S3‌ 	spark.read.parquet("s3a://bucket/")
+需配置 core-site.xml 的 S3 密钥 	云端生产环境 	6
+‌数据库直连‌ 	spark.read.jdbc(url, table) 	结构化数据导入
+
+Standalone 集群模式（生产部署）‌
 
     ‌架构特点‌：使用 Spark 内置资源管理器，无需 YARN/Mesos 57
     ‌部署步骤‌：
