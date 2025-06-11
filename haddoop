@@ -1,3 +1,41 @@
+ Standalone 集群模式（生产部署）‌
+
+    ‌架构特点‌：使用 Spark 内置资源管理器，无需 YARN/Mesos 57
+    ‌部署步骤‌：
+
+    bashCopy Code
+    # 主节点启动（假设 IP 为 192.168.1.100）
+    $SPARK_HOME/sbin/start-master.sh  # Web UI 端口 8080 :ml-citation{ref="5,7" data="citationList"}
+
+    # 工作节点加入（所有节点执行）
+    $SPARK_HOME/sbin/start-worker.sh spark://192.168.1.100:7077 :ml-citation{ref="5" data="citationList"}
+
+    # 提交任务到集群
+    spark-submit --master spark://192.168.1.100:7077 \
+      $SPARK_HOME/examples/jars/spark-examples_*.jar 100 :ml-citation{ref="7" data=
+
+本地单机模式（开发测试）‌
+
+    ‌适用场景‌：快速验证代码逻辑，无需分布式环境
+    ‌安装步骤‌：
+
+    bashCopy Code
+    # 下载无需 Hadoop 的 Spark 包（选择 Pre-built without Hadoop 版本）:ml-citation{ref="5,6" data="citationList"}
+    wget https://archive.apache.org/dist/spark/spark-3.5.0/spark-3.5.0-bin-without-hadoop.tgz
+
+    # 解压并配置环境变量
+    tar -zxvf spark-3.5.0-bin-without-hadoop.tgz -C /opt
+    export SPARK_HOME=/opt/spark-3.5.0-bin-without-hadoop
+    export PATH=$PATH:$SPARK_HOME/bin
+
+    ‌运行验证‌：
+
+    bashCopy Code
+    spark-shell  # 启动 Scala Shell
+    > sc.parallelize(1 to 100).sum()
+
+
+
 将关系型数据库（如MySQL/Oracle）数据同步到Iceberg的完整技术方案如下，涵盖实时与批量场景：
 
 🔄 一、实时增量同步（CDC模式）
