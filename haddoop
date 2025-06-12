@@ -1,4 +1,12 @@
 spark tutorial
+
+
+    RDD[Person]：以 Person 为类型参数，但不了解其内部结构。
+
+    DataFrame：提供了详细的结构信息 schema 列的名称和类型。这样看起来就像一张表了。
+
+    DataSet[Person]：不光有 schema 信息，还有类型信息。
+
 https://blog.csdn.net/Javachichi/article/details/131871627
 持久化和 Checkpoint 的区别：
 
