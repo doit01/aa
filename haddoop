@@ -1,5 +1,10 @@
 spark tutorial
 运行流程如下：
+阶段‌ 	‌输入‌ 	‌输出‌ 	‌组件‌
+‌DAG生成‌ 	RDD转换操作 	有向无环图 	Driver/DAGScheduler9
+‌Stage划分‌ 	DAG 	Shuffle边界分割的Stage 	DAGScheduler59
+‌Task调度‌ 	Stage中的TaskSet 	Executor上的Task执行 	TaskScheduler8
+
 https://i-blog.csdnimg.cn/blog_migrate/91fba69e08680b56fe728ec75a8cd561.png
     SparkContext 向资源管理器注册并向资源管理器申请运行 Executor
     资源管理器分配 Executor，然后资源管理器启动 Executor
@@ -16,6 +21,19 @@ https://i-blog.csdnimg.cn/blog_migrate/91fba69e08680b56fe728ec75a8cd561.png
                             版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
                         
 原文链接：https://blog.csdn.net/Javachichi/article/details/131871627
+Spark 内核会在需要计算发生的时刻绘制一张关于计算路径的有向无环图，也就是如上图所示的 DAG
+将 DAG 划分为 Stage 核心算法
+一个 Application 可以有多个 job 多个 Stage：
+
+Spark Application 中可以因为不同的 Action 触发众多的 job，一个 Application 中可以有很多的 job，每个 job 是由一个或者多个 Stage 构成的，后面的 Stage 依赖于前面的 Stage，也就是说只有前面依赖的 Stage 计算完毕后，后面的 Stage 才会运行。
+
+划分依据：Stage 划分的依据就是宽依赖，像 reduceByKey，groupByKey 等算子，会导致宽依赖的产生。
+————————————————
+
+                            版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
+                        
+原文链接：https://blog.csdn.net/Javachichi/article/details/131871627
+
 
 
 Spark Shuffle 分为两种：
