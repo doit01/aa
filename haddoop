@@ -1,4 +1,23 @@
 spark tutorial
+运行流程如下：
+https://i-blog.csdnimg.cn/blog_migrate/91fba69e08680b56fe728ec75a8cd561.png
+    SparkContext 向资源管理器注册并向资源管理器申请运行 Executor
+    资源管理器分配 Executor，然后资源管理器启动 Executor
+    Executor 发送心跳至资源管理器
+    SparkContext 构建 DAG 有向无环图
+    将 DAG 分解成 Stage（TaskSet）
+    把 Stage 发送给 TaskScheduler
+    Executor 向 SparkContext 申请 Task
+    TaskScheduler 将 Task 发送给 Executor 运行
+    同时 SparkContext 将应用程序代码发放给 Executor
+    Task 在 Executor 上运行，运行完毕释放所有资源
+————————————————
+
+                            版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
+                        
+原文链接：https://blog.csdn.net/Javachichi/article/details/131871627
+
+
 Spark Shuffle 分为两种：
 
     一种是基于 Hash 的 Shuffle；
