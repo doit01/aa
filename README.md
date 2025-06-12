@@ -1,3 +1,39 @@
+ROW_NUMBER
+
+    ‌功能‌：ROW_NUMBER函数为查询结果集中的每一行分配一个唯一的连续序号。即使排序字段值相同，ROW_NUMBER也会赋予不同的序号‌12。
+    ‌适用场景‌：适用于需要严格唯一序号的场景，如分页查询、需要绝对唯一标识的情况‌12。
+
+RANK
+
+    ‌功能‌：RANK函数为结果集中的每一行分配一个排名。当遇到相同的排序字段值时，RANK会赋予相同的排名，并且后续排名会跳跃，留出空缺位置‌12。
+    ‌适用场景‌：适用于允许并列排名的场景，如体育赛事排名等，允许排名不连续的情
+ WITH DepartmentSales AS (
+    SELECT 
+        e.department_id,
+        s.employee_id,
+        s.amount,
+        RANK() OVER (PARTITION BY e.department_id ORDER BY s.amount DESC) as rank
+    FROM 
+        sales s
+    JOIN 
+        employees e ON s.employee_id = e.employee_id
+)
+SELECT 
+    e.department_id,
+    e.name,
+    ds.amount
+FROM 
+    DepartmentSales ds
+JOIN 
+    employees e ON ds.employee_id = e.employee_id
+WHERE 
+    ds.rank = 1;
+
+
+
+    
+
+    
 tail -n 10 filename.txt | head -n 5
 awk 'NR>=5 && NR<=10' xx.log
 sed -n '5,10p' xx.log
