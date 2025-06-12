@@ -1,4 +1,21 @@
 spark tutorial
+Spark Shuffle 分为两种：
+
+    一种是基于 Hash 的 Shuffle；
+    另一种是基于 Sort 的 Shuffle。
+shuffle write 阶段，主要就是在一个 stage 结束计算之后，为了下一个 stage 可以执行 shuffle 类的算子（比如 reduceByKey），而将每个 task 处理的数据按 key 进行“划分”。所谓“划分”，就是对相同的 key 执行 hash 算法，从而将相同 key 都写入同一个磁盘文件中，而每一个磁盘文件都只属于下游 stage 的一个 task。在将数据写入磁盘之前，会先将数据写入内存缓冲中，当内存缓冲填满之后，才会溢写到磁盘文件中去。
+
+下一个 stage 的 task 有多少个，当前 stage 的每个 task 就要创建多少份磁盘文件。比如:
+
+        下一个 stage 总共有 100 个 task，那么当前 stage 的每个 task 都要创建 100 份磁盘文件。
+        如果当前 stage 有 50 个 task，总共有 10 个 Executor，每个 Executor 执行 5 个 task，那么每个 Executor 上总共就要创建 500 个磁盘文件，所有 Executor 上会创建 5000 个磁盘文件。
+
+由此可见，未经优化的 shuffle write 操作所产生的磁盘文件的数量是极其惊人的
+————————————————
+
+                            版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
+                        
+原文链接：https://blog.csdn.net/Javachichi/article/details/131871627
 
 
     RDD[Person]：以 Person 为类型参数，但不了解其内部结构。
