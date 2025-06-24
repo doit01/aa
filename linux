@@ -1,0 +1,78 @@
+以下是 sed 和 jq 命令的详细解释及对比：
+
+1. sed（流编辑器）‌
+
+用途‌：文本流的查找、替换、删除等操作
+核心语法‌：
+
+bash
+Copy Code
+sed 's/原内容/替换内容/[flags]' 文件名
+
+
+常用操作‌：
+
+替换文本‌：
+bash
+Copy Code
+echo "hello world" | sed 's/world/China/'  # 输出：hello China
+
+删除行‌：
+bash
+Copy Code
+sed '3d' file.txt  # 删除第3行
+
+正则匹配‌：
+bash
+Copy Code
+sed -n '/error/p' log.txt  # 打印含"error"的行
+
+
+特点‌：
+
+按行处理文本
+支持正则表达式
+直接修改文件需加 -i 参数
+2. jq（JSON处理器）‌
+
+用途‌：JSON数据的查询、过滤、格式化
+核心语法‌：
+
+bash
+Copy Code
+jq '筛选表达式' 文件名
+
+
+常用操作‌：
+
+提取字段‌：
+bash
+Copy Code
+echo '{"name":"Alice","age":25}' | jq '.name'  # 输出："Alice"
+
+数组过滤‌：
+bash
+Copy Code
+jq '.[] | select(.price > 100)' data.json
+
+格式化输出‌：
+bash
+Copy Code
+jq '.' compact.json  # 美化JSON
+
+
+特点‌：
+
+支持管道式链式操作
+内置条件过滤（select）和函数计算
+保留JSON结构
+3. 对比总结‌
+命令‌	数据格式	典型场景	学习曲线
+sed	纯文本	日志处理、批量替换	低
+jq	JSON	API响应解析、配置提取	中
+
+组合使用示例‌：
+
+bash
+Copy Code
+curl API_URL | jq '.data' | sed 's/old/new/' > output.txt
