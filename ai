@@ -1,0 +1,38 @@
+在 MCP（Model Context Protocol）协议中，‌大模型本身不会直接调用 MCP Server‌，而是通过以下分层协作机制完成工具调用：
+
+🔍 ‌核心调用关系‌
+
+大模型（LLM）的角色‌
+
+仅负责‌生成结构化请求模板‌（如 {"function": "search_weather", "parameters": {"city": "上海"}}），并将其输出给 MCP Client。
+LLM ‌不发起网络请求或执行代码‌，仅根据用户意图生成符合 MCP 协议的指令。
+
+MCP Client 的执行者角色‌
+
+作为大模型与 MCP Server 的中介，接收 LLM 输出的结构化请求；
+主动调用 MCP Server‌，发送请求并接收响应；
+将 Server 返回的数据传递给 LLM 生成最终回答。
+
+MCP Server 的工具提供方‌
+
+提供标准化工具服务（如天气查询、数据库操作）；
+被动响应‌ Client 的调用请求，执行操作后返回结果。
+⚙️ ‌典型工作流示例‌
+用户输入‌：“帮我查北京的天气”
+大模型输出‌：生成 JSON 指令 {"function": "get_weather", "parameters": {"city": "北京"}}；
+MCP Client 调用 Server‌：
+通过 HTTP/SSE/本地进程通信协议向 MCP Server 发送指令；
+MCP Server 执行‌：
+调用天气 API 获取数据，返回 {"status": 200, "data": {"temp": "25°C"}}；
+结果反馈‌：
+Client 将数据传回大模型，生成用户可读的回答：“北京当前气温 25°C”。
+🔧 ‌设计意义‌
+安全隔离‌：LLM 不接触敏感操作（如网络请求、密钥管理），由 Client 和 Server 控制执行；
+能力解耦‌：模型只需理解工具功能，无需实现调用逻辑；
+灵活扩展‌：新增工具时，仅需部署兼容 MCP 的 Server，无需修改模型。
+🌐 ‌实际应用场景‌
+IDE 智能助手‌（如 Trae、Cursor）：Client 嵌入 IDE，调用 MCP Server 实现代码补全、文档查询；
+企业服务集成‌（如融云 IM）：通过 MCP Server 封装消息发送 API，供模型间接调用；
+本地工具链‌：Client 通过 stdio 协议调用本地进程（如计算器）。
+
+💎 总结：大模型仅生成指令，由 ‌MCP Client 主动调用 Server‌ 完成实际操作，三者协同实现工具扩展能力。
