@@ -426,6 +426,20 @@ ReentrantLock 对比 synchronized‌
     锁优化策略（如无锁编程、锁消除/粗化）‌27。
     面试中可结合源码（如 AbstractQueuedSynchronizer 实现）和实际案例（如高并发计数器、死锁排查）深入阐述。
 
+要解决单例 Bean 依赖原型 Bean 时原型 Bean 生命周期被破坏的问题（即单例 Bean 始终使用同一个原型实例）
+单例 Bean 初始化时仅注入一次原型 Bean，导致后续操作始终复用同一实例，违背原型 Bean ‌每次获取新对象‌ 的设计初衷
+Jakarta Provider 接口‌（推荐）
+import jakarta.inject.Provider;
+
+public class SingletonBean {
+    @Resource
+    private Provider<PrototypeBean> prototypeBeanProvider; // 注入Provider
+
+    public void execute() {
+        PrototypeBean prototype = prototypeBeanProvider.get(); // 每次get()创建新实例
+        prototype.doSomething();
+    }
+}
 
 
 Spring 事务传播机制中 REQUIRES_NEW 的实现原理‌
