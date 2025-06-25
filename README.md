@@ -1,3 +1,48 @@
+多线程环境下实现事务回滚
+手动事务管理（推荐方案） 
+
+@Autowired
+private DataSource dataSource;
+
+public void multiThreadTransaction() throws Exception {
+    Connection conn = dataSource.getConnection();
+    conn.setAutoCommit(false); // 关闭自动提交
+    ExecutorService executor = Executors.newFixedThreadPool(4);
+    List<Future<Boolean>> futures = new ArrayList<>();
+    
+    try {
+        // 提交子线程任务
+        for (int i = 0; i < 10; i++) {
+            futures.add(executor.submit(() -> {
+                try (Connection innerConn = dataSource.getConnection()) {
+                    innerConn.setAutoCommit(false);
+                    // 执行数据库操作
+                    return true; // 操作成功
+                } catch (Exception e) {
+                    return false; // 标记失败
+                }
+            }));
+        }
+        
+        // 检查所有子线程结果
+        for (Future<Boolean> future : futures) {
+            if (!future.get()) { // 任一子线程失败
+                conn.rollback(); // 主线程回滚
+                return;
+            }
+        }
+        conn.commit(); // 全部成功则提交
+    } catch (Exception e) {
+        conn.rollback();
+    } finally {
+        conn.close();
+        executor.shutdown();
+    }
+}
+
+
+
+
 ROW_NUMBER
 
     ‌功能‌：ROW_NUMBER函数为查询结果集中的每一行分配一个唯一的连续序号。即使排序字段值相同，ROW_NUMBER也会赋予不同的序号‌12。
