@@ -1,3 +1,34 @@
+以下是Tomcat中max-connections与server.tomcat.threads.max（即max-threads）的核心区别与职责解析：
+
+1. max-connections（最大连接数）‌
+定义‌：控制Tomcat‌同时建立的TCP连接总数上限‌，包括活跃请求和空闲连接。
+触发场景‌：
+当连接数达到此阈值，新连接将被‌立即拒绝‌（而非排队）。
+默认值：
+NIO模式‌：10,000（Tomcat 8+）
+BIO模式：与max-threads值相同。
+类比‌：类似电话总机的‌最大接入线路数‌，超出后直接占线。
+2. server.tomcat.threads.max（最大工作线程数）‌
+定义‌：控制‌同时处理请求的线程数量‌，即线程池大小。
+触发场景‌：
+所有线程忙碌时，新请求进入accept-count队列等待（若队列未满）。
+默认值：200（根据Tomcat版本可能动态调整）。
+性能影响‌：
+增加线程数可提升并发处理能力，但过度增加会导致‌CPU频繁切换开销‌。
+调优建议‌：通常设为 CPU核心数 × 200 左右（I/O密集型场景）。
+关键区别总结‌
+参数‌	作用层级	拒绝请求的触发条件	默认值
+max-connections	‌TCP连接层‌	连接总数超限	NIO：10,000
+server.tomcat.threads.max	‌请求处理层‌	线程全忙‌且‌等待队列满	200
+
+📌 ‌调优注意事项‌：
+
+高并发场景‌：优先调整max-threads（受限于CPU和内存）；
+长连接服务‌：需关注max-connections防止连接耗尽；
+队列缓冲作用依赖accept-count参数，需与max-threads协同配置。
+
+
+
 多线程环境下实现事务回滚
 手动事务管理（推荐方案） 
 
