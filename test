@@ -1,0 +1,74 @@
+Spring测试框架通过分层设计支持不同粒度的测试，各类核心组件分工明确：
+
+📌 1. 单元测试（Unit Testing）
+目标‌：验证单个类或方法的内部逻辑，‌不依赖Spring容器‌
+核心类/注解‌：
+@Test（JUnit）：标记测试方法
+@Mock（Mockito）：创建模拟依赖对象
+@InjectMocks（Mockito）：将被测类与模拟依赖注入
+适用场景‌：
+测试Service层业务逻辑，隔离数据库、外部服务等依赖
+java
+Copy Code
+@Test
+void getUserById() {
+    when(userRepository.findById(1L)).thenReturn(Optional.of(new User("Alice"))); // 模拟依赖
+    User user = userService.getUserById(1L); // 测试目标方法
+    assertEquals("Alice", user.getName());   // 断言验证
+}
+
+⚙️ 2. 集成测试（Integration Testing）
+目标‌：验证多个组件的协同工作，‌启动部分或全部Spring上下文‌
+核心类/注解‌：
+@SpringBootTest：加载完整应用上下文
+@DataJpaTest：仅加载JPA相关组件（Repository、EntityManager）
+@Transactional：测试后自动回滚数据库操作
+适用场景‌：
+测试DAO层数据库交互、服务间调用链
+🌐 3. Web切片测试（Web Layer Testing）
+目标‌：专注Web层逻辑（Controller、Filter），‌不加载Service/DAO层‌
+核心类/注解‌：
+@WebMvcTest：自动配置MockMvc，仅初始化Web层组件
+MockMvc：模拟HTTP请求并验证响应
+适用场景‌：
+测试REST API接口行为、HTTP状态码、JSON响应结构
+java
+Copy Code
+@WebMvcTest(UserController.class)
+public class UserControllerTest {
+    @Autowired MockMvc mvc;
+    
+    @Test
+    void getUsers() throws Exception {
+        mvc.perform(get("/users"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$[0].name").value("Alice"));
+    }
+}
+
+🔄 4. TestContext框架（底层支撑）
+目标‌：‌统一管理测试上下文生命周期‌
+核心机制‌：
+TestContextManager：协调测试执行与Spring上下文
+ContextCache：缓存已加载上下文，提升测试速度（相同配置复用）
+@DirtiesContext：标记需要销毁并重建上下文的测试
+关键优化‌：
+避免重复加载上下文，减少大型项目测试耗时
+🧪 5. Mock环境支持
+目标‌：提供‌容器外测试所需的环境模拟‌
+核心包‌：
+org.springframework.mock.web：Servlet API模拟对象（MockHttpServletRequest）
+org.springframework.mock.env：环境变量模拟（MockEnvironment）
+@MockBean：在Spring上下文中注入Mock对象替代真实Bean
+🚀 测试类型对比
+类型‌	核心注解/类	加载范围	适用场景
+单元测试‌	@Test + Mockito	无容器	业务逻辑验证
+集成测试‌	@SpringBootTest	完整/部分上下文	组件协作验证
+Web切片‌	@WebMvcTest	仅Web层（Controller）	API接口验证
+数据切片‌	@DataJpaTest	仅数据层（Repository）	数据库操作验证
+
+💡 ‌最佳实践‌：
+
+单元测试覆盖核心算法（80%覆盖率）
+集成测试验证关键业务流程
+切片测试针对边界模块（如Controller/Repository）
