@@ -1,3 +1,45 @@
+spark sql 处理结构化数据 一定的半结构化数据
+	RDD 组成 DAG 有向无环图, API 较为顶层, RDD 中间运算结果存在内存中 , 延迟小
+Task 以线程方式维护, 任务启动快
+Spark Core：实现了 Spark 的基本功能，包含 RDD、任务调度、内存管理、错误恢复、与存储系统交互等模块。
+Spark SQL：Spark 用来操作结构化数据的程序包。通过 Spark SQL
+standalone-HA 高可用模式
+
+    生产环境使用
+    基于 standalone 模式，使用 zk 搭建高可用，避免 Master 是有单点故障的。
+
+RDD(Resilient Distributed Dataset)叫做弹性分布式数据集，是 Spark 中最基本的数据抽象，代表一个不可变、可分区、里面的元素可并行计算的集合
+
+A list of partitions ：一组分片(Partition)/一个分区(Partition)列表，即数据集的基本组成单位。对于 RDD 来说，每个分片都会被一个计算任务处理，分片数决定并行度。用户可以在创建 RDD 时指定 RDD 的分片个数，如果没有指定，那么就会采用默认值。
+A function for computing each split ：一个函数会被作用在每一个分区。Spark 中 RDD 的计算是以分片为单位的，compute 函数会被作用到每个分区上。
+A list of dependencies on other RDDs ：一个 RDD 会依赖于其他多个 RDD。RDD 的每次转换都会生成一个新的 RDD，所以 RDD 之间就会形成类似于流水线一样的前后依赖关系。在部分分区数据丢失时，Spark 可以通过这个依赖关系重新计算丢失的分区数据，而不是对 RDD 的所有分区进行重新计算。(Spark 的容错机制)
+Optionally, a Partitioner for key-value RDDs (e.g. to say that the RDD is hash-partitioned)：可选项，对于 KV 类型的 RDD 会有一个 Partitioner，即 RDD 的分区函数，默认为 HashPartitioner。
+Optionally, a list of preferred locations to compute each split on (e.g. block locations for an HDFS file)：可选项,一个列表，存储存取每个 Partition 的优先位置(preferred location)。对于一个 HDFS 文件来说，这个列表保存的就是每个 Partition 所在的块的位置。按照"移动数据不如移动计算"的理念，Spark 在进行任务调度的时候，会尽可能选择那些存有数据的 worker 节点来进行任务计算
+————————————————
+RDD 是一个数据集的表示，不仅表示了数据集，还表示了这个数据集从哪来，如何计算，主要属性包括：
+
+    分区列表
+    分区函数(默认是 hash)
+    最佳位置
+  计算函数
+  依赖关系
+
+分区列表、分区函数、最佳位置，这三个属性其实说的就是数据集在哪，在哪计算更合适，如何分区；
+
+计算函数、依赖关系，这两个属性其实说的是数据集怎么来的。
+————————————————
+
+                            版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
+                        
+原文链接：https://blog.csdn.net/Javachichi/article/details/131871627
+
+
+
+
+https://blog.csdn.net/Javachichi/article/details/131871627?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-0-131871627-blog-147614327.235^v43^pc_blog_bottom_relevance_base6&spm=1001.2101.3001.4242.1&utm_relevant_index=2
+
+
+
 以下是 **Kafka Streams 与 Apache Spark 的核心区别** 及其适用场景的详细对比，帮助您根据需求选择合适的技术：
 
 ---
