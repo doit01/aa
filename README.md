@@ -1,3 +1,6 @@
+devops for linux
+https://github.com/1Panel-dev/1Panel
+
 以下是Tomcat中max-connections与server.tomcat.threads.max（即max-threads）的核心区别与职责解析：
 
 1. max-connections（最大连接数）‌
