@@ -1,3 +1,69 @@
+以下是ClickHouse与Cassandra的深度对比分析，结合核心架构、性能表现及适用场景等关键维度：
+
+🏗️ 一、核心架构差异
+维度‌	‌ClickHouse‌	‌Cassandra‌
+存储模型‌	列式存储（高压缩，适合聚合分析）‌	宽列存储（灵活处理非结构化数据）‌
+分布式架构‌	主从架构，依赖ZooKeeper管理元数据‌	去中心化P2P架构，无单点故障‌
+一致性模型‌	最终一致性（写入即查需等待合并）‌	可调一致性（QUORUM/ALL等策略）‌
+扩展方式‌	手动分片，扩容需停机‌	在线横向扩展，节点自动均衡‌
+⚡ 二、性能关键对比
+1. ‌读写性能‌
+写入场景‌
+Cassandra：‌高吞吐写入‌（百万级/秒），适合IoT设备日志、实时消息流‌
+ClickHouse：批量追加写入优化（>1000行/批），单条写入延迟高‌
+查询场景‌
+ClickHouse：‌聚合查询碾压级性能‌（10亿数据秒级响应）‌
+Cassandra：擅长单行点查，复杂分析需Spark集成‌
+2. ‌资源消耗‌
+指标‌	ClickHouse	Cassandra
+压缩率‌	7:1（LZ4/ZSTD）‌	2:1（默认压缩）‌
+内存占用‌	查询时需加载列数据‌	MemTable+SSTable分层管理‌
+三、适用场景与局限
+1. ‌ClickHouse 理想场景‌
+实时分析‌：用户行为漏斗分析、广告投放统计‌
+时序数据‌：IoT传感器监控、日志聚合（如ELK替代）‌
+强需求‌：高压缩比、复杂SQL聚合‌
+
+❗局限：不支持事务，JOIN性能弱，高频更新不友好‌
+
+2. ‌Cassandra 理想场景‌
+高并发写入‌：社交消息流、设备状态上报‌
+全球多活‌：跨数据中心同步（如电商库存系统）‌
+强需求‌：高可用性、灵活Schema‌
+
+❗局限：分析查询慢，不支持复杂SQL‌
+
+🔧 四、企业级方案选型建议
+需求‌	‌推荐方案‌	‌原因‌
+实时大屏（亿级DAU）	ClickHouse + 物化视图	亚秒级响应聚合结果‌
+全球分布式订单存储	Cassandra多DC部署	写扩展性强，最终一致性保证‌
+混合场景（写入+分析）	Cassandra→ClickHouseETL	Cassandra承接写入，ClickHouse做离线分析‌
+
+<富媒体卡片>
+封面："https://example.com/cassandra-arch.jpg"
+标题："Cassandra去中心化架构解析"
+</富媒体卡片>
+<富媒体卡片>
+封面："https://example.com/clickhouse-compress.jpg"
+标题："ClickHouse列存储压缩原理"
+</富媒体卡片>
+<富媒体卡片>
+封面："https://example.com/olap-vs-nosql.jpg"
+标题："OLAP与NoSQL场景对比图"
+</富媒体卡片>
+</noteList>
+
+💡 五、趋势与生态补充
+ClickHouse‌：2025年新增‌LiveView‌支持流式计算，逐步弥补实时处理短板‌
+Cassandra‌：集成Spark/Flink实现分析能力，但性能仍落后专用OLAP引擎‌
+混合架构趋势‌：Cassandra作实时数据湖，ClickHouse作加速层（如Yandex实践）‌
+
+⚠️ 关键决策点：
+
+选ClickHouse当 ‌查询性能 > 写入灵活性‌
+选Cassandra当 ‌高可用扩展 > 复杂分析需求‌
+
+
 spark tutorial
 运行流程如下：
 阶段‌ 	‌输入‌ 	‌输出‌ 	‌组件‌
