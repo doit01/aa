@@ -1,3 +1,23 @@
+springboot 启动加载过程：
+@EnableAutoConfiguaration 通过AutoConfigurationImportSelector，SpringFactoriesLoader搜集配置文件中的配置工厂类（定义在jar包的spring.factories下），通过classloader加载组件工厂类，组件工厂类实例化bean，如jdbcFatorybean，工厂类创建出datasource，redis，filter之类的bean。
+
+SpringFactoriesLoader为Spring工厂加载器，该对象提供了loadFactoryNames方法，入参为factoryClass和classLoader即需要传入工厂类名称和对应的类加载器，方法会根据指定的classLoader，加载该类加器搜索路径下的指定文件，即spring.factories文件，传入的工厂类为接口，而文件中对应的类则是接口的实现类，或最终作为实现类。
+
+
+
+@ConditionalOnClass({ SqlSessionFactory.class, SqlSessionFactoryBean.class})这个注解的意思是：当存在SqlSessionFactory.class, SqlSessionFactoryBean.class这两个类时才解析MybatisAutoConfiguration配置类,否则不解析这一个配置类。我们需要mybatis为我们返回会话对象，就必须有会话工厂相关类
+
+
+@CondtionalOnBean(DataSource.class):只有处理已经被声明为bean的dataSource
+
+
+@ConditionalOnMissingBean(MapperFactoryBean.class)这个注解的意思是如果容器中不存在name指定的bean则创建bean注入，否则不执行
+
+作者：祖大帅
+链接：https://juejin.cn/post/6844903652201594887
+来源：稀土掘金
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
 devops for linux
 https://github.com/1Panel-dev/1Panel
 
